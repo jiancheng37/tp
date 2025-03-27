@@ -53,7 +53,7 @@ public class MatchListingCommandTest {
     /**
      * Custom assertion for MatchListingCommand success that doesn't rely on model equality
      */
-    private void assertMatchCommandSuccess(MatchListingCommand command, Model model, String expectedMessage) 
+    private void assertMatchCommandSuccess(MatchListingCommand command, Model model, String expectedMessage)
             throws CommandException {
         CommandResult result = command.execute(model);
         assertEquals(new CommandResult(expectedMessage), result);

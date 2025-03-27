@@ -10,7 +10,6 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -132,12 +131,7 @@ public class DeletePreferenceCommandTest {
                 preference.getPriceRange(), differentTags, personWithPreference);
         personWithPreference.addPropertyPreference(differentPreference);
 
-        // Set active filter tags to match the first preference
-        Set<String> activeFilterTags = new HashSet<>();
-        activeFilterTags.add("modern");
-        model.setActiveFilterTags(activeFilterTags);
-
-        // The first preference should match our filter and be at index 0
+        // The first preference should be at index 0
         DeletePreferenceCommand deleteCommand = new DeletePreferenceCommand(INDEX_FIRST_PERSON, Index.fromZeroBased(0));
 
         // Set up expected model
@@ -149,8 +143,6 @@ public class DeletePreferenceCommandTest {
         PropertyPreference expectedDifferentPreference = new PropertyPreference(
                 expectedPreference.getPriceRange(), Collections.singleton(differentTag), expectedPerson);
         expectedPerson.addPropertyPreference(expectedDifferentPreference);
-
-        expectedModel.setActiveFilterTags(activeFilterTags);
 
         String expectedMessage = String.format(DeletePreferenceCommand.MESSAGE_DELETE_PREFERENCE_SUCCESS,
                 Messages.format(expectedPerson, expectedPreference));
