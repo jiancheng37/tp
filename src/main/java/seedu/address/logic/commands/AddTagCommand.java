@@ -54,6 +54,8 @@ public class AddTagCommand extends Command {
         for (String tag : toAdd) {
             tagList.add(new Tag(tag, new ArrayList<>(), new ArrayList<>()));
         }
+
+        model.resetAllLists();
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(tagList)));
     }
 

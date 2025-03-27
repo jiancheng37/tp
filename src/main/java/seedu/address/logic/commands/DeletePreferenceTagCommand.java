@@ -95,6 +95,7 @@ public class DeletePreferenceTagCommand extends Command {
         }
 
         model.setPerson(targetPerson, targetPerson);
+        model.resetAllLists();
 
         return new CommandResult(String.format(MESSAGE_DELETE_PREFERENCE_TAG_SUCCESS,
                 Messages.format(targetPerson, preferenceToDelete), Messages.format(tags)));

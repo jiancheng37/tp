@@ -125,6 +125,8 @@ public class OverwritePreferenceTagCommand extends Command {
 
         model.setPerson(targetPerson, targetPerson);
 
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.formatTagsOnly(newTags)));
     }
 

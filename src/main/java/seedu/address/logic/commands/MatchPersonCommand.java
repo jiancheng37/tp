@@ -2,8 +2,8 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -13,8 +13,11 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.listing.Listing;
+import seedu.address.model.listing.comparators.ListingPreferenceScoreComparator;
+import seedu.address.model.listing.predicates.ListingMatchesPreferencePredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PropertyPreference;
+import seedu.address.model.price.PriceRange;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -51,14 +54,18 @@ public class MatchPersonCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
+        List<Person> lastShownList = model.getSortedFilteredPersonList();
+        PriceRange.setFilteredAgainst(null);
+        Tag.setActiveSearchTags(new ArrayList<>());
 
         if (targetPersonIndex.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
         Person targetPerson = lastShownList.get(targetPersonIndex.getZeroBased());
 
-        List<PropertyPreference> targetPreferenceList = targetPerson.getPropertyPreferences();
+        List<PropertyPreference> targetPreferenceList = targetPerson.getPropertyPreferences()
+                .stream().filter(PropertyPreference::isFiltered).toList();
+
         if (targetPreferenceIndex.getZeroBased() >= targetPreferenceList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PREFERENCE_DISPLAYED_INDEX);
         }
@@ -75,38 +82,19 @@ public class MatchPersonCommand extends Command {
     }
 
     private void matchPreference(Model model, PropertyPreference preferenceToMatch) {
-        HashMap<Listing, Integer> listingScores = new HashMap<>();
 
         model.updateFilteredListingList(model.PREDICATE_SHOW_ALL_LISTINGS);
         model.updateSortedFilteredListingList(model.COMPARATOR_SHOW_ALL_LISTINGS);
 
-        for (Listing listing : model.getFilteredListingList()) {
-            int score = 0;
+        PriceRange.setFilteredAgainst(null);
+        Tag.setActiveSearchTags(new ArrayList<>());
 
-            if (preferenceToMatch.getPriceRange().doPriceRangeOverlap(listing.getPriceRange())) {
-                score += 1;
-            }
 
-            for (Tag tag : preferenceToMatch.getTags()) {
-                if (listing.getTags().contains(tag)) {
-                    score += 1;
-                }
-            }
+        Predicate<Listing> predicate = new ListingMatchesPreferencePredicate(preferenceToMatch);
+        Comparator<Listing> comparator = new ListingPreferenceScoreComparator(preferenceToMatch);
 
-            if (score == 0) {
-                continue;
-            }
-
-            listingScores.put(listing, score);
-        }
-
-        Predicate<Listing> predicate = listing -> listingScores.containsKey(listing);
-
-        Comparator<Listing> comparator = (listing1, listing2) -> {
-            int score1 = listingScores.getOrDefault(listing1, 0);
-            int score2 = listingScores.getOrDefault(listing2, 0);
-            return Integer.compare(score2, score1);
-        };
+        PriceRange.setFilteredAgainst(preferenceToMatch.getPriceRange());
+        Tag.setActiveSearchTags(preferenceToMatch.getTags().stream().toList());
 
         model.updateFilteredListingList(predicate);
         model.updateSortedFilteredListingList(comparator);

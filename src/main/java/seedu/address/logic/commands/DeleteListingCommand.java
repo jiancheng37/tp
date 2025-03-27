@@ -57,6 +57,8 @@ public class DeleteListingCommand extends Command {
         removeListingFromTags(toDelete);
 
         model.deleteListing(toDelete);
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(toDelete)));
     }
 

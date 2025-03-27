@@ -97,6 +97,8 @@ public class AddListingTagCommand extends Command {
         }
 
         model.setListing(listingToAddTags, listingToAddTags);
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_SUCCESS,
                 Messages.format(listingToAddTags.getTags(), listingToAddTags)));
     }

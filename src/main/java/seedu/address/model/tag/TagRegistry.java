@@ -116,7 +116,6 @@ public class TagRegistry implements Iterable<Tag> {
         add(editedTag);
     }
 
-
     /**
      * Removes the tag with the specified tag name from the hashmap.
      * {@code tagName} must exist in the hashmap.
@@ -161,6 +160,7 @@ public class TagRegistry implements Iterable<Tag> {
     public ObservableMap<String, Tag> asUnmodifiableObservableMap() {
         return internalUnmodifiableMap;
     }
+
 
     @Override
     public Iterator<Tag> iterator() {

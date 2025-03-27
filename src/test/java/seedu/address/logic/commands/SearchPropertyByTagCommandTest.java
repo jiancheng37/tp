@@ -34,6 +34,11 @@ public class SearchPropertyByTagCommandTest {
     public void setUp() {
         model = new ModelManager(new AddressBook(), new UserPrefs());
 
+        model.updateFilteredPersonList(model.PREDICATE_SHOW_ALL_PERSONS);
+        model.updateSortedFilteredPersonList(model.COMPARATOR_SHOW_ALL_PERSONS);
+        model.updateFilteredPersonList(model.PREDICATE_SHOW_ALL_PERSONS);
+        model.updateSortedFilteredListingList(model.COMPARATOR_SHOW_ALL_LISTINGS);
+
         // Clear registry first to avoid duplicates
         Set<String> keys = Set.copyOf(TagRegistry.of().asUnmodifiableObservableMap().keySet());
         for (String key : keys) {
@@ -64,6 +69,7 @@ public class SearchPropertyByTagCommandTest {
                 )),
                 true
         );
+        model.updateFilteredListingList(Model.PREDICATE_SHOW_ALL_LISTINGS);
         model.addListing(listing);
     }
 

@@ -15,6 +15,8 @@ import java.util.Objects;
  */
 public class PriceRange {
 
+    private static PriceRange filteredAgainst = null;
+
     public final Price lowerBoundPrice;
     public final Price upperBoundPrice;
 
@@ -101,6 +103,35 @@ public class PriceRange {
                 || this.isPriceWithinRange(otherPriceRange.upperBoundPrice);
 
         return isLowerBoundWithinRange || isUpperBoundWithinRange;
+    }
+
+    /**
+     * Returns the price range that is being filtered against.
+     */
+    public static PriceRange getFilteredAgainst() {
+        return filteredAgainst;
+    }
+
+
+
+    /**
+     * Sets the price range that is being filtered against.
+     *
+     */
+    public static void setFilteredAgainst(PriceRange newFilteredAgainst) {
+        filteredAgainst = newFilteredAgainst;
+    }
+
+    /**
+     * Checks if the price range is matched against the filtered price range.
+     *
+     */
+    public boolean isPriceMatched() {
+        if (filteredAgainst == null) {
+            return false;
+        }
+
+        return this.doPriceRangeOverlap(filteredAgainst);
     }
 
     @Override

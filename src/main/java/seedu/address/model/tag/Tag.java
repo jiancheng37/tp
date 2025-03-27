@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.PropertyPreference;
@@ -24,12 +26,16 @@ public class Tag {
             + "The tag cannot be blank and must not already exist.";
     public static final String VALIDATION_REGEX = "^[a-zA-Z0-9' ._+&-]{2,30}$";
 
+    private static final ObservableMap<String, Tag> activeSearchTags = FXCollections.observableHashMap();
+
     // Identity fields
     public final String tagName;
 
     // Associations
     private final List<PropertyPreference> propertyPreferences = new ArrayList<>();
     private final List<Listing> listings = new ArrayList<>();
+
+
 
     /**
      * Constructs a {@code Tag}.
@@ -110,6 +116,37 @@ public class Tag {
      */
     public int getNumUsage() {
         return getNumPropertyPreferences() + getNumListings();
+    }
+
+    /**
+     * Returns the active search tags list as an unmodifiable {@code ObservableMap}.
+     *
+     * @return the unmodifiable map of ActiveSearchTags.
+     */
+    public static ObservableMap<String, Tag> getActiveSearchTags() {
+        return FXCollections.unmodifiableObservableMap(activeSearchTags);
+    }
+
+    /**
+     * Replaces the contents of active search tags hashmap with {@code tags}.
+     * {@code tags} must not contain duplicate tags.
+     *
+     * @param tags the replacement list.
+     */
+    public static void setActiveSearchTags(List<Tag> tags) {
+        requireAllNonNull(tags);
+
+        activeSearchTags.clear();
+        for (Tag tag : tags) {
+            activeSearchTags.put(tag.getTagName(), tag);
+        }
+    }
+
+    /**
+     * Returns true if the tag is active in search.
+     */
+    public boolean isActive() {
+        return activeSearchTags.containsKey(tagName);
     }
 
     /**

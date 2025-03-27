@@ -64,6 +64,8 @@ public class DeleteTagCommand extends Command {
             deletedTags.add(tagToDelete);
         }
 
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_DELETE_TAG_SUCCESS, Messages.format(deletedTags)));
     }
 

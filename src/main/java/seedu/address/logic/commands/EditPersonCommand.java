@@ -81,6 +81,8 @@ public class EditPersonCommand extends Command {
         updatePersonInListings(personToEdit, editedPerson, model);
         updatePersonInPreferences(editedPerson, model);
         model.setPerson(personToEdit, editedPerson);
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 

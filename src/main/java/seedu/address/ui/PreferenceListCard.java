@@ -43,12 +43,23 @@ public class PreferenceListCard extends UiPart<Region> {
      */
     public PreferenceListCard(PropertyPreference propertyPreference, int displayedIndex) {
         super(FXML);
+
         this.propertyPreference = propertyPreference;
         id.setText(displayedIndex + ". ");
         priceRange.setText("  --------------  " + propertyPreference.getPriceRange().toString());
 
+        if (propertyPreference.getPriceRange().isPriceMatched()) {
+            priceRange.getStyleClass().add("active");
+        }
+
         propertyPreference.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+                .forEach(tag -> {
+                    Label label = new Label(tag.tagName);
+                    if (tag.isActive()) {
+                        label.getStyleClass().add("active");
+                    }
+                    tags.getChildren().add(label);
+                });
     }
 }

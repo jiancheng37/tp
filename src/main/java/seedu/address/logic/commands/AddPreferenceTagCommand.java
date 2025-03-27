@@ -78,7 +78,11 @@ public class AddPreferenceTagCommand extends Command {
         }
         Person targetPerson = lastShownList.get(targetPersonIndex.getZeroBased());
 
-        List<PropertyPreference> targetPreferenceList = targetPerson.getPropertyPreferences();
+        // Filter preferences according to active filter tags
+        List<PropertyPreference> targetPreferenceList = targetPerson.getPropertyPreferences().stream()
+                .filter(PropertyPreference::isFiltered)
+                .toList();
+
         if (targetPreferenceIndex.getZeroBased() >= targetPreferenceList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PREFERENCE_DISPLAYED_INDEX);
         }
@@ -115,6 +119,7 @@ public class AddPreferenceTagCommand extends Command {
         }
 
         model.setPerson(targetPerson, targetPerson);
+        model.resetAllLists();
 
         return new CommandResult(String.format(MESSAGE_SUCCESS,
                 Messages.format(targetPerson, preference), Messages.format(tags)));

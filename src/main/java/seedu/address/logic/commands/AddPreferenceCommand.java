@@ -106,6 +106,8 @@ public class AddPreferenceCommand extends Command {
         personToAddPreference.addPropertyPreference(preference);
 
         model.setPerson(personToAddPreference, personToAddPreference);
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_SUCCESS,
                 Messages.format(personToAddPreference, preference)));
     }

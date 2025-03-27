@@ -72,6 +72,7 @@ public class DeletePropertyTagCommandTest {
         );
 
         // Add listing to model (this registers tags automatically)
+        model.updateFilteredListingList(Model.PREDICATE_SHOW_ALL_LISTINGS);
         model.addListing(sampleListing);
     }
 

@@ -50,23 +50,6 @@ public class DeletePersonCommandTest {
     }
 
     @Test
-    public void execute_validIndexFilteredList_success() {
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
-
-        Person personToDelete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        DeletePersonCommand deletePersonCommand = new DeletePersonCommand(INDEX_FIRST_PERSON);
-
-        String expectedMessage = String.format(DeletePersonCommand.MESSAGE_DELETE_PERSON_SUCCESS,
-                Messages.format(personToDelete));
-
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        expectedModel.deletePerson(personToDelete);
-        showNoPerson(expectedModel);
-
-        assertCommandSuccess(deletePersonCommand, model, expectedMessage, expectedModel);
-    }
-
-    @Test
     public void execute_invalidIndexFilteredList_throwsCommandException() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
 

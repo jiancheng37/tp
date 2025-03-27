@@ -57,14 +57,9 @@ public class DeletePreferenceCommand extends Command {
         }
         Person targetPerson = lastShownList.get(targetPersonIndex.getZeroBased());
 
-        Set<String> activeFilterTags = model.getActiveFilterTags();
-
         // Filter preferences according to active filter tags
         List<PropertyPreference> filteredPreferences = targetPerson.getPropertyPreferences().stream()
-                .filter(pref -> activeFilterTags.isEmpty()
-                        || activeFilterTags.stream().allMatch(tagName ->
-                        pref.getTags().stream()
-                                .anyMatch(tag -> tag.getTagName().equalsIgnoreCase(tagName))))
+                .filter(PropertyPreference::isFiltered)
                 .toList();
 
         if (targetPreferenceIndex.getZeroBased() >= filteredPreferences.size()) {
@@ -77,6 +72,8 @@ public class DeletePreferenceCommand extends Command {
         removePropertyPreferenceFromTags(preferenceToDelete);
 
         model.setPerson(targetPerson, targetPerson);
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_DELETE_PREFERENCE_SUCCESS,
                 Messages.format(targetPerson, preferenceToDelete)));
     }

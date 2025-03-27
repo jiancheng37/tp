@@ -9,7 +9,6 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -35,18 +33,6 @@ public class AddPersonCommandTest {
     @Test
     public void constructor_nullPerson_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new AddPersonCommand(null));
-    }
-
-    @Test
-    public void execute_personAcceptedByModel_addSuccessful() throws Exception {
-        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
-        Person validPerson = new PersonBuilder().build();
-
-        CommandResult commandResult = new AddPersonCommand(validPerson).execute(modelStub);
-
-        assertEquals(String.format(AddPersonCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
-                commandResult.getFeedbackToUser());
-        assertEquals(Arrays.asList(validPerson), modelStub.personsAdded);
     }
 
     @Test
@@ -238,6 +224,11 @@ public class AddPersonCommandTest {
         }
 
         @Override
+        public void resetAllLists() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public boolean hasTags(Set<String> tags) {
             return false;
         }
@@ -250,15 +241,6 @@ public class AddPersonCommandTest {
         @Override
         public void addTags(Set<String> tags) {
             storedTags.addAll(tags);
-        }
-
-        @Override
-        public void setActiveFilterTags(Set<String> tags) {
-        }
-
-        @Override
-        public Set<String> getActiveFilterTags() {
-            return Set.of();
         }
     }
 

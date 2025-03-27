@@ -63,6 +63,7 @@ public class DeleteOwnerCommand extends Command {
 
         model.setPerson(ownerToDelete, ownerToDelete);
         model.setListing(targetListing, targetListing);
+        model.resetAllLists();
 
         return new CommandResult(String.format(MESSAGE_DELETE_OWNER_SUCCESS, Messages.format(ownerToDelete)));
     }

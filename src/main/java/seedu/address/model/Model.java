@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -21,7 +22,10 @@ public interface Model {
 
     Predicate<Listing> PREDICATE_SHOW_ALL_LISTINGS = unused -> true;
     Comparator<Listing> COMPARATOR_SHOW_ALL_LISTINGS = Comparator.comparing(l -> l.getPostalCode().postalCode);
+
     Predicate<Tag> PREDICATE_SHOW_ALL_TAGS = unused -> true;
+
+    Predicate<PropertyPreference> PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES = unused -> true;
 
     /**
      * Replaces user prefs data with the data in {@code userPrefs}.
@@ -169,6 +173,8 @@ public interface Model {
 
     void setTag(Tag target, Tag editedTag);
 
-    void setActiveFilterTags(Set<String> tags);
-    Set<String> getActiveFilterTags();
+    /**
+     * Resets all lists to show all items.
+     */
+    void resetAllLists();
 }

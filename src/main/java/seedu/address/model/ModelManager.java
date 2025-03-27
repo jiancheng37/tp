@@ -4,8 +4,8 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -20,6 +20,8 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PropertyPreference;
+import seedu.address.model.price.PriceRange;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -35,8 +37,6 @@ public class ModelManager implements Model {
     private final FilteredList<Listing> filteredListings;
     private final SortedList<Listing> sortedFilteredListings;
     private final FilteredList<Tag> filteredTags;
-    private Set<String> currentPersonSearchTags = Set.of();
-    private Set<String> activeFilterTags = new HashSet<>();
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -49,13 +49,16 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
-        sortedFilteredPersons = new SortedList<>(filteredPersons);
+        filteredPersons.setPredicate(PREDICATE_SHOW_ALL_PERSONS);
 
-        updateSortedFilteredPersonList(COMPARATOR_SHOW_ALL_PERSONS);
+        sortedFilteredPersons = new SortedList<>(filteredPersons);
+        sortedFilteredPersons.setComparator(COMPARATOR_SHOW_ALL_PERSONS);
 
         filteredListings = new FilteredList<>(this.addressBook.getListingList());
+        filteredListings.setPredicate(PREDICATE_SHOW_ALL_LISTINGS);
+
         sortedFilteredListings = new SortedList<>(this.filteredListings);
-        updateSortedFilteredListingList(COMPARATOR_SHOW_ALL_LISTINGS);
+        sortedFilteredListings.setComparator(COMPARATOR_SHOW_ALL_LISTINGS);
 
         // Convert ObservableMap values to ObservableList
         ObservableMap<String, Tag> tagMap = this.addressBook.getTagList();
@@ -70,6 +73,8 @@ public class ModelManager implements Model {
                 tagObservableList.remove(change.getValueRemoved());
             }
         });
+
+
 
         // Create a FilteredList from the ObservableList
         filteredTags = new FilteredList<>(tagObservableList);
@@ -150,8 +155,6 @@ public class ModelManager implements Model {
     @Override
     public void addPerson(Person person) {
         addressBook.addPerson(person);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        updateSortedFilteredPersonList(COMPARATOR_SHOW_ALL_PERSONS);
     }
 
     @Override
@@ -171,8 +174,6 @@ public class ModelManager implements Model {
     public void addListing(Listing listing) {
         requireNonNull(listing);
         addressBook.addListing(listing);
-        updateFilteredListingList(PREDICATE_SHOW_ALL_LISTINGS);
-        updateSortedFilteredListingList(COMPARATOR_SHOW_ALL_LISTINGS);
     }
 
     @Override
@@ -200,6 +201,32 @@ public class ModelManager implements Model {
         updateFilteredTagList(PREDICATE_SHOW_ALL_TAGS);
     }
 
+    private void resetTagList() {
+        updateFilteredTagList(PREDICATE_SHOW_ALL_TAGS);
+    }
+
+    private void resetPersonList() {
+        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        updateSortedFilteredPersonList(COMPARATOR_SHOW_ALL_PERSONS);
+
+        PropertyPreference.setFilterPredicate(PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
+    }
+
+    private void resetListingList() {
+        updateFilteredListingList(PREDICATE_SHOW_ALL_LISTINGS);
+        updateSortedFilteredListingList(COMPARATOR_SHOW_ALL_LISTINGS);
+    }
+
+    @Override
+    public void resetAllLists() {
+        Tag.setActiveSearchTags(new ArrayList<>());
+        PriceRange.setFilteredAgainst(null);
+
+        resetPersonList();
+        resetListingList();
+        resetTagList();
+    }
+
     //=========== Filtered Person List Accessors =============================================================
 
     /**
@@ -217,18 +244,6 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public void updateFilteredPersonList(Predicate<Person> predicate) {
-        requireNonNull(predicate);
-        filteredPersons.setPredicate(predicate);
-    }
-
-    @Override
-    public void updateSortedFilteredPersonList(Comparator<Person> comparator) {
-        requireNonNull(comparator);
-        sortedFilteredPersons.setComparator(comparator);
-    }
-
-    @Override
     public ObservableList<Listing> getFilteredListingList() {
         return filteredListings;
     }
@@ -243,38 +258,78 @@ public class ModelManager implements Model {
         return filteredTags;
     }
 
+
+    @Override
+    public void updateFilteredPersonList(Predicate<Person> predicate) {
+        if (predicate == null) {
+            filteredPersons.setPredicate(PREDICATE_SHOW_ALL_PERSONS);
+            return;
+        }
+
+        if (predicate.equals(filteredPersons.getPredicate())) {
+            filteredPersons.setPredicate(PREDICATE_SHOW_ALL_PERSONS);
+        }
+
+        filteredPersons.setPredicate(predicate);
+    }
+
+    @Override
+    public void updateSortedFilteredPersonList(Comparator<Person> comparator) {
+        if (comparator == null) {
+            sortedFilteredPersons.setComparator(COMPARATOR_SHOW_ALL_PERSONS);
+            return;
+        }
+
+        if (comparator.equals(sortedFilteredPersons.getComparator())) {
+            sortedFilteredPersons.setComparator(COMPARATOR_SHOW_ALL_PERSONS);
+        }
+
+        sortedFilteredPersons.setComparator(comparator);
+    }
+
     @Override
     public void updateFilteredListingList(Predicate<Listing> predicate) {
-        requireNonNull(predicate);
+        if (predicate == null) {
+            filteredListings.setPredicate(PREDICATE_SHOW_ALL_LISTINGS);
+            return;
+        }
+
+        if (predicate.equals(filteredListings.getPredicate())) {
+            filteredListings.setPredicate(PREDICATE_SHOW_ALL_LISTINGS);
+        }
+
         filteredListings.setPredicate(predicate);
     }
 
     @Override
     public void updateSortedFilteredListingList(Comparator<Listing> comparator) {
-        requireNonNull(comparator);
+        if (comparator == null) {
+            sortedFilteredListings.setComparator(COMPARATOR_SHOW_ALL_LISTINGS);
+            return;
+        }
+
+        if (comparator.equals(sortedFilteredListings.getComparator())) {
+            sortedFilteredListings.setComparator(COMPARATOR_SHOW_ALL_LISTINGS);
+        }
+
         sortedFilteredListings.setComparator(comparator);
     }
 
     @Override
     public void updateFilteredTagList(Predicate<Tag> predicate) {
-        requireNonNull(predicate);
+        if (predicate == null) {
+            filteredTags.setPredicate(PREDICATE_SHOW_ALL_TAGS);
+            return;
+        }
+        if (predicate.equals(filteredTags.getPredicate())) {
+            filteredTags.setPredicate(PREDICATE_SHOW_ALL_TAGS);
+        }
         filteredTags.setPredicate(predicate);
     }
 
     @Override
     public void setTag(Tag target, Tag editedTag) {
         addressBook.setTag(target, editedTag);
-    }
-
-    @Override
-    public void setActiveFilterTags(Set<String> tags) {
-        requireNonNull(tags);
-        activeFilterTags = tags;
-    }
-
-    @Override
-    public Set<String> getActiveFilterTags() {
-        return activeFilterTags;
     }
 
     @Override

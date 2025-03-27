@@ -100,6 +100,8 @@ public class AddListingCommand extends Command {
         }
 
         model.addListing(toAdd);
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
     }
 

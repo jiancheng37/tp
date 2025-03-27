@@ -27,6 +27,9 @@ public class ClearCommand extends Command {
         model.setAddressBook(new AddressBook());
         TagRegistry tagRegistry = TagRegistry.of();
         tagRegistry.setTags(new ArrayList<>());
+
+        model.resetAllLists();
+
         return new CommandResult(MESSAGE_SUCCESS);
     }
 }

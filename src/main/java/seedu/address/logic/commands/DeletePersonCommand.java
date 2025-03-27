@@ -58,6 +58,8 @@ public class DeletePersonCommand extends Command {
         removePersonPropertyPreferenceFromTags(personToDelete);
 
         model.deletePerson(personToDelete);
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
     }
 

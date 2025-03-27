@@ -115,6 +115,8 @@ public class OverwritePropertyTagCommand extends Command {
         // Format property details for success message
         String propertyDetails = Messages.formatPropertyDetails(property);
 
+        model.resetAllLists();
+
         return new CommandResult(String.format(MESSAGE_SUCCESS, propertyDetails, Messages.formatTagsOnly(newTags)));
     }
 

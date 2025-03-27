@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -13,6 +14,8 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.listing.predicates.ListingContainsAllTagsPredicate;
+import seedu.address.model.tag.Tag;
+import seedu.address.model.tag.TagRegistry;
 
 /**
  * Searches for {@code Listing}(s) whose tags contain all specified tags.
@@ -46,14 +49,22 @@ public class SearchPropertyByTagCommand extends Command {
         // Validate each tag exists
         for (String tagName : tagsToSearch) {
             if (!model.hasTags(Set.of(tagName))) {
-                throw new CommandException(String.format(Messages.MESSAGE_SEARCH_PROPERTY_TAG_NOT_FOUND, tagName));
+                throw new CommandException(String
+                        .format(Messages.MESSAGE_SEARCH_PROPERTY_TAG_NOT_FOUND, tagName));
             }
         }
+
+        List<Tag> activeTags = new ArrayList<>();
+        for (String tagName : tagsToSearch) {
+            activeTags.add(TagRegistry.of().get(tagName));
+        }
+        Tag.setActiveSearchTags(activeTags);
 
         ListingContainsAllTagsPredicate predicate = new ListingContainsAllTagsPredicate(tagsToSearch);
         model.updateFilteredListingList(predicate);
 
-        List<Listing> filteredListings = model.getFilteredListingList();
+        List<Listing> filteredListings = model.getSortedFilteredListingList();
+
         if (filteredListings.isEmpty()) {
             return new CommandResult(Messages.MESSAGE_SEARCH_PROPERTY_TAGS_NO_MATCH);
         } else {

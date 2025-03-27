@@ -89,6 +89,9 @@ public class DeletePropertyTagCommand extends Command {
             tagRegistry.setTag(tag, tag);
             deletedTags.add(tag);
         }
+
+        model.resetAllLists();
+
         return new CommandResult(String.format(Messages.MESSAGE_DELETE_PROPERTY_TAG_SUCCESS,
                 listingToEdit.getPostalCode(), Messages.format(deletedTags)));
     }

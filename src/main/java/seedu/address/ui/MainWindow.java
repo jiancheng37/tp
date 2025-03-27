@@ -121,7 +121,7 @@ public class MainWindow extends UiPart<Stage> {
         tagListPanel = new TagListPanel(logic.getFilteredTagList());;
         tagListPanelPlaceholder.getChildren().add(tagListPanel.getRoot());
 
-        personListPanel = new PersonListPanel(logic.getSortedFilteredPersonList(), logic.getActiveFilterTags());
+        personListPanel = new PersonListPanel(logic.getSortedFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
         listingListPanel = new ListingListPanel(logic.getSortedFilteredListingList());
@@ -147,17 +147,6 @@ public class MainWindow extends UiPart<Stage> {
             primaryStage.setX(guiSettings.getWindowCoordinates().getX());
             primaryStage.setY(guiSettings.getWindowCoordinates().getY());
         }
-    }
-
-    /**
-     * Refreshes the {@code PersonListPanel} by recreating it with the latest filtered person list
-     * and active filter tags from the logic. This ensures that the UI displays only the preferences
-     * matching the current search tags.
-     */
-    public void refreshPersonListPanel() {
-        personListPanelPlaceholder.getChildren().clear();
-        personListPanel = new PersonListPanel(logic.getFilteredPersonList(), logic.getActiveFilterTags());
-        personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
     }
 
     /**
@@ -204,7 +193,6 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            refreshPersonListPanel();
 
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
