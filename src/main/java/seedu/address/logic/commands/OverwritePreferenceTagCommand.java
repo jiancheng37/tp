@@ -17,7 +17,6 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * Overwrites all {@code Tag}s in a {@code PropertyPreference} identified using it's displayed index
@@ -41,10 +40,8 @@ public class OverwritePreferenceTagCommand extends Command {
             + "2-toilets " + PREFIX_NEW_TAG + "seaside view " + PREFIX_NEW_TAG + "beach";
 
     public static final String MESSAGE_SUCCESS = "Tag in preference overwritten with: %s";
-    public static final String MESSAGE_INVALID_TAGS = "At least one of the tags given does not exist.";
-    public static final String MESSAGE_DUPLICATE_TAGS = "At least one of the new tags given already exist.";
-    public static final String MESSAGE_NO_TAGS_SPECIFIED =
-        "At least one [t/TAG] or [nt/NEW_TAG] needs to be specified.";
+    public static final String MESSAGE_INVALID_TAGS = "At least one of the tags given does not exist.\n%s";
+    public static final String MESSAGE_DUPLICATE_TAGS = "At least one of the new tags given already exist.\n%s";
 
     private final Index targetPersonIndex;
     private final Index targetPreferenceIndex;
@@ -75,36 +72,36 @@ public class OverwritePreferenceTagCommand extends Command {
         List<Person> lastShownList = model.getSortedFilteredPersonList();
 
         if (targetPersonIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            throw new CommandException(String.format(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, MESSAGE_USAGE));
         }
         Person targetPerson = lastShownList.get(targetPersonIndex.getZeroBased());
 
         List<PropertyPreference> targetPreferenceList = targetPerson.getPropertyPreferences();
         if (targetPreferenceIndex.getZeroBased() >= targetPreferenceList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PREFERENCE_DISPLAYED_INDEX);
+            throw new CommandException(String.format(Messages.MESSAGE_INVALID_PREFERENCE_DISPLAYED_INDEX,
+                    MESSAGE_USAGE));
         }
 
         PropertyPreference preference = targetPreferenceList.get(targetPreferenceIndex.getZeroBased());
 
         if (!model.hasTags(tagSet)) {
-            throw new CommandException(MESSAGE_INVALID_TAGS);
+            throw new CommandException(String.format(MESSAGE_INVALID_TAGS, MESSAGE_USAGE));
         }
 
         if (model.hasNewTags(newTagSet)) {
-            throw new CommandException(MESSAGE_DUPLICATE_TAGS);
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_TAGS, MESSAGE_USAGE));
         }
 
         // Create new tags
         model.addTags(newTagSet);
 
-        TagRegistry tagRegistry = TagRegistry.of();
         Set<String> tagNames = new HashSet<>(tagSet);
         Set<Tag> newTags = new HashSet<>();
         tagNames.addAll(newTagSet);
 
         // Prepare new tags to be added
         for (String tagName : tagNames) {
-            Tag tag = tagRegistry.get(tagName);
+            Tag tag = model.getTag(tagName);
             newTags.add(tag);
         }
 
@@ -112,14 +109,14 @@ public class OverwritePreferenceTagCommand extends Command {
         Set<Tag> existingTags = new HashSet<>(preference.getTags());
         for (Tag tag : existingTags) {
             tag.removePropertyPreference(preference);
-            tagRegistry.setTag(tag, tag);
+            model.setTag(tag, tag);
             preference.removeTag(tag);
         }
 
         // Add new tags
         for (Tag tag : newTags) {
             tag.addPropertyPreference(preference);
-            tagRegistry.setTag(tag, tag);
+            model.setTag(tag, tag);
             preference.addTag(tag);
         }
 

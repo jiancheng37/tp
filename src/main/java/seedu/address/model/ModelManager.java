@@ -6,6 +6,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -36,7 +37,9 @@ public class ModelManager implements Model {
     private final SortedList<Person> sortedFilteredPersons;
     private final FilteredList<Listing> filteredListings;
     private final SortedList<Listing> sortedFilteredListings;
+    private final ObservableMap<String, Tag> tagMap;
     private final FilteredList<Tag> filteredTags;
+    private final SortedList<Tag> sortedFilteredTags;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -60,10 +63,10 @@ public class ModelManager implements Model {
         sortedFilteredListings = new SortedList<>(this.filteredListings);
         sortedFilteredListings.setComparator(COMPARATOR_SHOW_ALL_LISTINGS);
 
-        // Convert ObservableMap values to ObservableList
-        ObservableMap<String, Tag> tagMap = this.addressBook.getTagList();
-        ObservableList<Tag> tagObservableList = FXCollections.observableArrayList(tagMap.values());
+        tagMap = this.addressBook.getTagMap();
 
+        // Convert ObservableMap values to ObservableList
+        ObservableList<Tag> tagObservableList = FXCollections.observableArrayList(tagMap.values());
         // Add a listener to the ObservableMap to update the ObservableList dynamically
         tagMap.addListener((MapChangeListener<String, Tag>) change -> {
             if (change.wasAdded()) {
@@ -75,9 +78,12 @@ public class ModelManager implements Model {
         });
 
 
-
         // Create a FilteredList from the ObservableList
         filteredTags = new FilteredList<>(tagObservableList);
+        filteredTags.setPredicate(PREDICATE_SHOW_ALL_TAGS);
+        sortedFilteredTags = new SortedList<>(this.filteredTags);
+        sortedFilteredTags.setComparator(COMPARATOR_SHOW_ALL_TAGS);
+
     }
 
     public ModelManager() {
@@ -182,25 +188,6 @@ public class ModelManager implements Model {
         addressBook.setListing(listing, editedListing);
     }
 
-    @Override
-    public boolean hasTags(Set<String> tags) {
-        requireNonNull(tags);
-        return addressBook.hasTags(tags);
-    }
-
-    @Override
-    public boolean hasNewTags(Set<String> tags) {
-        requireNonNull(tags);
-        return addressBook.hasNewTags(tags);
-    }
-
-    @Override
-    public void addTags(Set<String> tags) {
-        requireNonNull(tags);
-        addressBook.addTags(tags);
-        updateFilteredTagList(PREDICATE_SHOW_ALL_TAGS);
-    }
-
     private void resetTagList() {
         updateFilteredTagList(PREDICATE_SHOW_ALL_TAGS);
     }
@@ -219,12 +206,18 @@ public class ModelManager implements Model {
 
     @Override
     public void resetAllLists() {
-        Tag.setActiveSearchTags(new ArrayList<>());
-        PriceRange.setFilteredAgainst(null);
-
+        setSearch(new ArrayList<>(), null, SearchType.NONE);
         resetPersonList();
         resetListingList();
         resetTagList();
+    }
+
+    @Override
+    public void setSearch(List<Tag> tags, PriceRange priceRange, SearchType searchType) {
+        Tag.setActiveSearchTags(tags);
+        Tag.setSearch(searchType);
+        PriceRange.setFilteredAgainst(priceRange);
+        PriceRange.setSearch(searchType);
     }
 
     //=========== Filtered Person List Accessors =============================================================
@@ -253,9 +246,18 @@ public class ModelManager implements Model {
         return sortedFilteredListings;
     }
 
+    public ObservableMap<String, Tag> getTagMap() {
+        return tagMap;
+    }
+
     @Override
     public ObservableList<Tag> getFilteredTagList() {
         return filteredTags;
+    }
+
+    @Override
+    public ObservableList<Tag> getSortedFilteredTagList() {
+        return sortedFilteredTags;
     }
 
 
@@ -325,6 +327,37 @@ public class ModelManager implements Model {
             filteredTags.setPredicate(PREDICATE_SHOW_ALL_TAGS);
         }
         filteredTags.setPredicate(predicate);
+    }
+
+    @Override
+    public boolean hasTag(String tag) {
+        requireNonNull(tag);
+        return addressBook.hasTag(tag);
+    }
+
+    @Override
+    public boolean hasTags(Set<String> tags) {
+        requireNonNull(tags);
+        return addressBook.hasTags(tags);
+    }
+
+    @Override
+    public boolean hasNewTags(Set<String> tags) {
+        requireNonNull(tags);
+        return addressBook.hasNewTags(tags);
+    }
+
+    @Override
+    public void addTags(Set<String> tags) {
+        requireNonNull(tags);
+        addressBook.addTags(tags);
+        updateFilteredTagList(PREDICATE_SHOW_ALL_TAGS);
+    }
+
+    @Override
+    public Tag getTag(String tagName) {
+        requireNonNull(tagName);
+        return tagMap.get(tagName.toUpperCase());
     }
 
     @Override

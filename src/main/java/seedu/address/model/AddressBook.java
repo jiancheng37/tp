@@ -14,7 +14,7 @@ import seedu.address.model.listing.UniqueListingList;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
+import seedu.address.model.tag.UniqueTagMap;
 
 /**
  * Wraps all data at the address-book level
@@ -24,7 +24,7 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     private final UniquePersonList persons;
     private final UniqueListingList listings;
-    private final TagRegistry tagRegistry;
+    private final UniqueTagMap tags;
 
     /*
      * The 'unusual' code block below is a non-static initialization block, sometimes used to avoid duplication
@@ -36,10 +36,11 @@ public class AddressBook implements ReadOnlyAddressBook {
     {
         persons = new UniquePersonList();
         listings = new UniqueListingList();
-        tagRegistry = TagRegistry.of();
+        tags = new UniqueTagMap();
     }
 
-    public AddressBook() {}
+    public AddressBook() {
+    }
 
     /**
      * Creates an AddressBook using the Persons in the {@code toBeCopied}
@@ -70,10 +71,20 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
+     * Replaces the contents of the tag list with {@code tags}.
+     * Ensures that {@code tags} does not contain duplicate tags.
+     *
+     * @param tags The new list of tags.
+     */
+    public void setTags(List<Tag> tags) {
+        this.tags.setTags(tags);
+    }
+
+    /**
      * Replaces the given listing {@code target} with {@code editedListing}.
      * Ensures that the {@code target} exists in the address book.
      *
-     * @param target The original listing to be replaced.
+     * @param target       The original listing to be replaced.
      * @param editedPerson The new listing replacing the target.
      */
     public void setListing(Listing target, Listing editedPerson) {
@@ -86,8 +97,8 @@ public class AddressBook implements ReadOnlyAddressBook {
      *
      * @return An ObservableMap representing the tag list.
      */
-    public ObservableMap<String, Tag> getTagList() {
-        return tagRegistry.asUnmodifiableObservableMap();
+    public ObservableMap<String, Tag> getTagMap() {
+        return tags.asUnmodifiableObservableMap();
     }
 
     /**
@@ -119,6 +130,7 @@ public class AddressBook implements ReadOnlyAddressBook {
 
         setPersons(newData.getPersonList());
         setListings(newData.getListingList());
+        setTags(newData.getTagMap().values().stream().toList());
     }
 
     //// person-level operations
@@ -182,37 +194,58 @@ public class AddressBook implements ReadOnlyAddressBook {
      * {@code key} must exist in the address book.
      */
     public void removeTag(Tag tag) {
-        tagRegistry.remove(tag);
+        tags.remove(tag);
+    }
+
+    /**
+     * Adds a tag to the tag registry.
+     *
+     * @param tagName Name of tag to add.
+     */
+    public void addTag(String tagName) {
+        requireNonNull(tagName);
+        Tag tag = new Tag(tagName, new ArrayList<>(), new ArrayList<>());
+        if (!tags.contains(tag)) {
+            this.tags.add(tag);
+        }
     }
 
     /**
      * Adds multiple tags to the tag registry.
      *
-     * @param tags A set of tags to add.
+     * @param tagNames A set of tags to add.
      */
-    public void addTags(Set<String> tags) {
-        requireNonNull(tags);
-        TagRegistry tagRegistry = TagRegistry.of();
-        for (String tagName : tags) {
-            Tag tag = new Tag(tagName, new ArrayList<>(), new ArrayList<>());
-            if (!tagRegistry.contains(tag)) {
-                tagRegistry.add(tag);
-            }
+    public void addTags(Set<String> tagNames) {
+        requireNonNull(tagNames);
+        for (String tagName : tagNames) {
+            addTag(tagName);
         }
+    }
+
+    /**
+     * Checks if A given tag exist in the tag registry.
+     *
+     * @param tagName Name of tag to check.
+     * @return True if all tags exist, false otherwise.
+     */
+    public boolean hasTag(String tagName) {
+        requireNonNull(tagName);
+
+        Tag tag = new Tag(tagName, new ArrayList<>(), new ArrayList<>());
+        return tags.contains(tag);
     }
 
     /**
      * Checks if all given tags exist in the tag registry.
      *
-     * @param tags A set of tags to check.
+     * @param tagNames A set of tag names to check.
      * @return True if all tags exist, false otherwise.
      */
-    public boolean hasTags(Set<String> tags) {
-        requireNonNull(tags);
-        TagRegistry tagRegistry = TagRegistry.of();
-        for (String tagName : tags) {
+    public boolean hasTags(Set<String> tagNames) {
+        requireNonNull(tagNames);
+        for (String tagName : tagNames) {
             Tag tag = new Tag(tagName, new ArrayList<>(), new ArrayList<>());
-            if (!tagRegistry.contains(tag)) {
+            if (!this.tags.contains(tag)) {
                 return false;
             }
         }
@@ -222,22 +255,21 @@ public class AddressBook implements ReadOnlyAddressBook {
     /**
      * Checks if at least one of the given tags exists in the tag registry.
      *
-     * @param tags A set of tags to check.
+     * @param tagNames A set of tags to check.
      * @return True if at least one tag exists, false otherwise.
      */
-    public boolean hasNewTags(Set<String> tags) {
-        requireNonNull(tags);
-        TagRegistry tagRegistry = TagRegistry.of();
-        for (String tagName : tags) {
+    public boolean hasNewTags(Set<String> tagNames) {
+        requireNonNull(tagNames);
+        for (String tagName : tagNames) {
             Tag tag = new Tag(tagName, new ArrayList<>(), new ArrayList<>());
-            if (tagRegistry.contains(tag)) {
+            if (this.tags.contains(tag)) {
                 return true;
             }
         }
         return false;
     }
 
-    //// util methods
+    /// / util methods
 
     @Override
     public String toString() {
@@ -268,7 +300,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     public void setTag(Tag target, Tag editedTag) {
-        tagRegistry.setTag(target, editedTag);
+        tags.setTag(target, editedTag);
     }
 
     @Override

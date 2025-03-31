@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -17,9 +18,9 @@ import seedu.address.model.person.Person;
 /**
  * Searches for {@code Listing}(s) that are owned by a {@code Person} identified using it's displayed index.
  */
-public class SearchOwnerPropertyCommand extends Command {
+public class SearchOwnerListingCommand extends Command {
 
-    public static final String COMMAND_WORD = "searchOwnerProperty";
+    public static final String COMMAND_WORD = "searchOwnerListing";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Finds all properties owned by a person identified by the index number "
@@ -32,12 +33,12 @@ public class SearchOwnerPropertyCommand extends Command {
     private final Index targetIndex;
 
     /**
-     * Creates a {@code SearchOwnerPropertyCommand} to list the specified {@code Person}'s owned
+     * Creates a {@code SearchOwnerListingCommand} to list the specified {@code Person}'s owned
      * {@code Listing}s.
      *
      * @param targetIndex of the listing in the filtered listing list to delete
      */
-    public SearchOwnerPropertyCommand(Index targetIndex) {
+    public SearchOwnerListingCommand(Index targetIndex) {
         this.targetIndex = targetIndex;
     }
 
@@ -53,17 +54,19 @@ public class SearchOwnerPropertyCommand extends Command {
 
         List<Person> lastShownList = model.getFilteredPersonList();
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            throw new CommandException(String.format(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, MESSAGE_USAGE));
         }
 
+        model.resetAllLists();
         Person targetPerson = lastShownList.get(targetIndex.getZeroBased());
-
         searchSellerProperty(model, targetPerson);
 
         return new CommandResult(String.format(MESSAGE_SEARCH_SELLER_PROPERTY_SUCCESS, Messages.format(targetPerson)));
     }
 
     private void searchSellerProperty(Model model, Person targetPerson) {
+        requireAllNonNull(model, targetPerson);
+
         Predicate<Listing> predicate = new ListingContainsOwnerPredicate(targetPerson);
         model.updateFilteredListingList(predicate);
     }
@@ -79,7 +82,7 @@ public class SearchOwnerPropertyCommand extends Command {
             return false;
         }
 
-        SearchOwnerPropertyCommand otherDeletePersonCommand = (SearchOwnerPropertyCommand) other;
+        SearchOwnerListingCommand otherDeletePersonCommand = (SearchOwnerListingCommand) other;
         return targetIndex.equals(otherDeletePersonCommand.targetIndex);
     }
 

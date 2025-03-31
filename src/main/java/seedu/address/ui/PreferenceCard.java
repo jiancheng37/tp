@@ -12,7 +12,7 @@ import seedu.address.model.person.PropertyPreference;
 /**
  * An UI component that displays information of a {@code Person}.
  */
-public class PreferenceListCard extends UiPart<Region> {
+public class PreferenceCard extends UiPart<Region> {
 
     private static final String FXML = "PreferenceListCard.fxml";
 
@@ -41,14 +41,14 @@ public class PreferenceListCard extends UiPart<Region> {
     /**
      * Creates a {@code PersonCode} with the given {@code Person} and index to display.
      */
-    public PreferenceListCard(PropertyPreference propertyPreference, int displayedIndex) {
+    public PreferenceCard(PropertyPreference propertyPreference, int displayedIndex) {
         super(FXML);
 
         this.propertyPreference = propertyPreference;
         id.setText(displayedIndex + ". ");
         priceRange.setText("  --------------  " + propertyPreference.getPriceRange().toString());
 
-        if (propertyPreference.getPriceRange().isPriceMatched()) {
+        if (propertyPreference.getPriceRange().isPriceMatchedForPerson()) {
             priceRange.getStyleClass().add("active");
         }
 
@@ -56,7 +56,7 @@ public class PreferenceListCard extends UiPart<Region> {
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> {
                     Label label = new Label(tag.tagName);
-                    if (tag.isActive()) {
+                    if (tag.isActiveForPerson()) {
                         label.getStyleClass().add("active");
                     }
                     tags.getChildren().add(label);

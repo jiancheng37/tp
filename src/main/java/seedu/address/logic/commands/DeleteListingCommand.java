@@ -15,7 +15,6 @@ import seedu.address.model.Model;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * Deletes a {@code Listing} identified using it's displayed index in the address book.
@@ -48,13 +47,13 @@ public class DeleteListingCommand extends Command {
 
         List<Listing> lastShownList = model.getSortedFilteredListingList();
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_LISTING_DISPLAYED_INDEX);
+            throw new CommandException(String.format(Messages.MESSAGE_INVALID_LISTING_DISPLAYED_INDEX, MESSAGE_USAGE));
         }
 
         Listing toDelete = lastShownList.get(targetIndex.getZeroBased());
 
         removeListingOwners(toDelete, model);
-        removeListingFromTags(toDelete);
+        removeListingFromTags(toDelete, model);
 
         model.deleteListing(toDelete);
         model.resetAllLists();
@@ -92,14 +91,13 @@ public class DeleteListingCommand extends Command {
         }
     }
 
-    private void removeListingFromTags(Listing toDelete) {
+    private void removeListingFromTags(Listing toDelete, Model model) {
 
-        TagRegistry tagRegistry = TagRegistry.of();
         Set<Tag> tags = new HashSet<>(toDelete.getTags());
 
         for (Tag tag: tags) {
             tag.removeListing(toDelete);
-            tagRegistry.setTag(tag, tag);
+            model.setTag(tag, tag);
         }
     }
 }

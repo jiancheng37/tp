@@ -86,6 +86,7 @@ public class MainWindow extends UiPart<Stage> {
 
     /**
      * Sets the accelerator of a MenuItem.
+     *
      * @param keyCombination the KeyCombination value of the accelerator
      */
     private void setAccelerator(MenuItem menuItem, KeyCombination keyCombination) {
@@ -118,7 +119,8 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        tagListPanel = new TagListPanel(logic.getFilteredTagList());;
+        tagListPanel = new TagListPanel(logic.getSortedFilteredTagList());
+        ;
         tagListPanelPlaceholder.getChildren().add(tagListPanel.getRoot());
 
         personListPanel = new PersonListPanel(logic.getSortedFilteredPersonList());

@@ -71,7 +71,15 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` that is made up of parts e.g.`CommandBox`, `ResultDisplay`, `PersonListPanel`, `StatusBarFooter` etc. All these, including the `MainWindow`, inherit from the abstract `UiPart` class which captures the commonalities between classes that represent parts of the visible GUI.
+The UI consists of a MainWindow that is made up of several parts:
+- Command Interface: CommandBox, ResultDisplay
+- List Panels:
+    - `PersonListPanel` with `PersonCard` and `PreferenceListPanel` with `PreferenceCard`
+    - `ListingListPanel` with `ListingCard` and `OwnerListPanel` with `OwnerCard`
+    - `TagListPanel` 
+- Utility Components: `HelpWindow`, `StatusBarFooter`
+
+All these components, including the `MainWindow`, `inherit` from the abstract `UiPart` class which captures the commonalities between classes that represent parts of the visible GUI.
 
 The `UI` component uses the JavaFx UI framework. The layout of these UI parts are defined in matching `.fxml` files that are in the `src/main/resources/view` folder. For example, the layout of the [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java) is specified in [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml)
 
@@ -314,6 +322,14 @@ The Edit Tag feature allows users to edit the name of an existing tag. This feat
 
 The associated Listings and PropertyPreferences will be updated to reflect the new tag name.
 
+### \[Proposed\] Edit Listing feature
+
+The Edit Listing feature allows users to edit the details of an existing listing. This feature is useful when users want to update information such as postal code, unit/house number, price range, or property name of a listing. The following sequence diagram shows how the Edit Listing feature works:
+
+<puml src="diagrams/EditListingSequenceDiagram.puml" alt="EditListingSequenceDiagram" />
+
+The edit operation will update the listing's details while maintaining its existing tags and availability status. The system ensures that no duplicate listings can be created by checking the postal code and unit/house number combination.
+
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
@@ -390,7 +406,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`   | real estate agent                                              | add a property to a person                                                                        | track the property's current seller                                                           |
 | `* * *`   | real estate agent                                              | add the preferences of a person                                                                   | track what type of properties they are interested in purchasing                               |
 | `* * *`   | real estate agent                                              | add more than one property preference                                                             | simultaneously track multiple distinct properties a client is interested in purchasing        |
-| `* * *`   | real estate agent                                              | add tags to a property preference                                                                 | categorize a person’s buying interests more effectively                                       |
+| `* * *`   | real estate agent                                              | add tags to a property preference                                                                 | categorize a person's buying interests more effectively                                       |
 | `* * *`   | real estate agent                                              | remove a tag from a property preference                                                           | adjust my information to match a person's interests as they change                            |
 | `* *`     | real estate agent                                              | overwrite tags in a property preference                                                           | completely update a person's buying criteria as necessary                                     |
 | `* * *`   | real estate agent                                              | delete a property preference from a person                                                        | remove no longer relevant buying interests from the systemy                                   |
@@ -404,7 +420,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * `    | real estate agent                                              | mark a property as available when the listing is no longer on hold                                | ensure that listings that are no longer on hold can be considered for matching.               |
 | `* *   `  | real estate agent                                              | match a person with properties based on the number of common tags and budget                      | quickly find listings that fit their preferences                                              |
 | `* *  `   | real estate agent                                              | match a property with potential buyers based on the number of common tags and their budget        | identify interested persons efficiently.                                                      |
-| `* * `    | real estate agent                                              | filter properties based on a person’s preferences                                                 | provide targeted property recommendations.                                                    |
+| `* * `    | real estate agent                                              | filter properties based on a person's preferences                                                 | provide targeted property recommendations.                                                    |
 | `* * * `  | real estate agent                                              | add custom tags                                                                                   | customize the categorization of property preferences and properties according to my workflow. |
 | `* * *  ` | real estate agent                                              | add custom tags                                                                                   | capture niche preferences (such as pet-friendly).                                             |
 | `* * * `  | real estate agent                                              | list all tags                                                                                     | see the available categories in the system.                                                   |
@@ -413,17 +429,17 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *   `  | real estate agent                                              | search for properties by tags                                                                     | quickly find relevant listings.                                                               |
 | `* *  `   | real estate agent                                              | search for persons by tags                                                                        | find buyers based on their property preferences                                               |
 | `*   `    | real estate agent                                              | attach notes to my clients                                                                        | keep track of specific client requirements beyond common tags                                 |
-| `* *   `  | real estate agent                                              | update my buyer’s information when new information is available                                   | ensure that my information remains accurate and up to date                                    |
-| `* *   `  | real estate agent                                              | update my seller’s information when new information is available                                  | ensure that my information remains accurate and up to date                                    |
-| `* *   `  | real estate agent                                              | update my listing’s information when new information is available                                 | ensure that my information remains accurate and up to date.                                   |
+| `* *   `  | real estate agent                                              | update my buyer's information when new information is available                                   | ensure that my information remains accurate and up to date                                    |
+| `* *   `  | real estate agent                                              | update my seller's information when new information is available                                  | ensure that my information remains accurate and up to date                                    |
+| `* *   `  | real estate agent                                              | update my listing's information when new information is available                                 | ensure that my information remains accurate and up to date.                                   |
 | `*     `  | inexperienced user                                             | undo accidental deletions or edits                                                                | revert mistakes quickly                                                                       |
-| `* *   `  | real estate agent                                              | filter listings based on price range                                                              | focus on properties within the buyer’s budget.                                                |
+| `* *   `  | real estate agent                                              | filter listings based on price range                                                              | focus on properties within the buyer's budget.                                                |
 | `*     `  | real estate agent                                              | be able to list properties that clients have already toured                                       | avoid re-touring them on the same listing by accident.                                        |
 | `*     `  | real estate agent                                              | be able to add properties that the clients liked                                                  | keep track of the properties that they are interested in.                                     |
 | `*     `  | independent real estate agent                                  | be able to export a list of buyers                                                                | share them with other agents for collaboration.                                               |
 | `*     `  | frequent user                                                  | archive buyers and sellers who are inactive                                                       | reduce clutter when matching/searching.                                                       |
 | `*     `  | efficient user who may not have access to the app at all times | write bulk commands in a text file to add, edit or delete client details at the end of the day    | update information without having the application on hand.                                    |
-| `*     `  | real estate agent                                              | view the status of a deal (e.g., Inquiry, Viewing, Offer, Closed)                                 | understand the deal’s progression at a glance.                                                |
+| `*     `  | real estate agent                                              | view the status of a deal (e.g., Inquiry, Viewing, Offer, Closed)                                 | understand the deal's progression at a glance.                                                |
 | `*     `  | real estate agent                                              | be able to create backups and restore data via CLI commands                                       | do not risk losing client information in the event of data corruption.                        |
 | `*     `  | real estate agent                                              | be able to view a log of all commands executed                                                    | review my past commands.                                                                      |
 | `*     `  | power user                                                     | create custom command aliases (e.g., mb for match --batch)                                        | customize the commands to my workflow and work more efficiently.                              |
@@ -485,9 +501,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  User requests to <u>list persons (UC02)</u>
 2.  User requests to delete a specific person by index
-3.  MatchEstate deletes the person’s property preferences
-4.  MatchEstate updates the usage number of tags used by the person’s property preferences
-5.  MatchEstate deletes ownership of property for all of the person’s properties
+3.  MatchEstate deletes the person's property preferences
+4.  MatchEstate updates the usage number of tags used by the person's property preferences
+5.  MatchEstate deletes ownership of property for all of the person's properties
 6.  MatchEstate deletes the person
 7.  MatchEstate displays a success message.
 
@@ -699,8 +715,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 1.  User requests to <u>list persons(UC02)</u>
 2.  User requests to delete a property preference from a specific person by index
-3.  MatchEstate deletes the person’s property preferences
-4.  MatchEstate updates the usage number of tags used by the person’s property preferences
+3.  MatchEstate deletes the person's property preferences
+4.  MatchEstate updates the usage number of tags used by the person's property preferences
 5.  MatchEstate displays a success message
 
     Use case ends.
@@ -733,7 +749,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 4.  MatchEstate adds the property
 5.  MatchEstate creates new tags
 6.  MatchEstate updates the usage number of the tags
-7.  MatchEstate updates the property’s tags
+7.  MatchEstate updates the property's tags
 8.  MatchEstate displays a success message.
 
     Use case ends.
@@ -799,7 +815,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 3.  User requests to add a tag to property
 4.  MatchEstate creates new tags
 5.  MatchEstate updates the usage number of the tags
-6.  MatchEstate updates the property’s tags
+6.  MatchEstate updates the property's tags
 7.  MatchEstate displays a success message.
 
     Use case ends.

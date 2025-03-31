@@ -15,7 +15,6 @@ import seedu.address.model.Model;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * Deletes {@code Tag}(s) using a specified tag name(s).
@@ -33,7 +32,7 @@ public class DeleteTagCommand extends Command {
             + PREFIX_TAG + "pet-friendly ";
 
     public static final String MESSAGE_DELETE_TAG_SUCCESS = "Deleted Tags: %1$s";
-    public static final String MESSAGE_INVALID_TAGS = "At least one of the tags given does not exist.";
+    public static final String MESSAGE_INVALID_TAGS = "At least one of the tags given does not exist.\n%1$s";
 
     private final Set<String> toDelete;
 
@@ -51,13 +50,12 @@ public class DeleteTagCommand extends Command {
         requireNonNull(model);
 
         if (!model.hasTags(toDelete)) {
-            throw new CommandException(MESSAGE_INVALID_TAGS);
+            throw new CommandException(String.format(MESSAGE_INVALID_TAGS, MESSAGE_USAGE));
         }
 
-        TagRegistry tagRegistry = TagRegistry.of();
         Set<Tag> deletedTags = new HashSet<>();
         for (String tagName : toDelete) {
-            Tag tagToDelete = tagRegistry.get(tagName);
+            Tag tagToDelete = model.getTag(tagName);;
             removeTagsFromPropertyPreference(tagToDelete, model);
             removeTagsFromListings(tagToDelete, model);
             model.deleteTag(tagToDelete);

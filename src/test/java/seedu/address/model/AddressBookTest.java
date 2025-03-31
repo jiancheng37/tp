@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,9 +19,11 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddressBookTest {
@@ -54,7 +57,7 @@ public class AddressBookTest {
     public void resetData_withDuplicatePersons_throwsDuplicatePersonException() {
         Person duplicatePerson = new PersonBuilder(ALICE).build();
         List<Person> newPersons = Arrays.asList(ALICE, duplicatePerson);
-        AddressBookStub newData = new AddressBookStub(newPersons, Collections.emptyList());
+        AddressBookStub newData = new AddressBookStub(newPersons, Collections.emptyList(), new HashMap<>());
 
         assertThrows(DuplicatePersonException.class, () -> addressBook.resetData(newData));
     }
@@ -125,10 +128,12 @@ public class AddressBookTest {
     private static class AddressBookStub implements ReadOnlyAddressBook {
         private final ObservableList<Person> persons;
         private final ObservableList<Listing> listings;
+        private final ObservableMap<String, Tag> tags;
 
-        AddressBookStub(List<Person> persons, List<Listing> listings) {
+        AddressBookStub(List<Person> persons, List<Listing> listings, HashMap<String, Tag> tags) {
             this.persons = FXCollections.observableArrayList(persons);
             this.listings = FXCollections.observableArrayList(listings);
+            this.tags = FXCollections.observableMap(tags);
         }
 
         @Override
@@ -139,6 +144,11 @@ public class AddressBookTest {
         @Override
         public ObservableList<Listing> getListingList() {
             return listings;
+        }
+
+        @Override
+        public ObservableMap<String, Tag> getTagMap() {
+            return tags;
         }
     }
 }

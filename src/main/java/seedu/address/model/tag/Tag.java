@@ -11,6 +11,7 @@ import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.SearchType;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.PropertyPreference;
 
@@ -23,10 +24,11 @@ public class Tag {
 
     public static final String MESSAGE_CONSTRAINTS = "Tags must be between 2 and 30 characters long and can only "
             + "contain letters, numbers, apostrophes, spaces, periods, hyphens, underscores, plus, and ampersands. "
-            + "The tag cannot be blank and must not already exist.";
+            + "The tag cannot be blank and must not already exist (unless for deleting).";
     public static final String VALIDATION_REGEX = "^[a-zA-Z0-9' ._+&-]{2,30}$";
 
     private static final ObservableMap<String, Tag> activeSearchTags = FXCollections.observableHashMap();
+    private static SearchType searchType = SearchType.NONE;
 
     // Identity fields
     public final String tagName;
@@ -36,14 +38,13 @@ public class Tag {
     private final List<Listing> listings = new ArrayList<>();
 
 
-
     /**
      * Constructs a {@code Tag}.
      * The constructor is protected to ensure that tags cannot be created without using the registry.
      *
-     * @param tagName A valid tag name.
+     * @param tagName             A valid tag name.
      * @param propertyPreferences A valid list of property preferences.
-     * @param listings A valid list of listings.
+     * @param listings            A valid list of listings.
      */
     public Tag(String tagName, List<PropertyPreference> propertyPreferences, List<Listing> listings) {
         requireAllNonNull(tagName, propertyPreferences, listings);
@@ -143,14 +144,30 @@ public class Tag {
     }
 
     /**
-     * Returns true if the tag is active in search.
+     * Sets the search type for the tag
+     *
+     * @param searchType
      */
-    public boolean isActive() {
-        return activeSearchTags.containsKey(tagName);
+    public static void setSearch(SearchType searchType) {
+        Tag.searchType = searchType;
     }
 
     /**
-     ** Checks if two tag have the same identity and data fields and associations.
+     * Returns true if the tag is active in search for person.
+     */
+    public boolean isActiveForPerson() {
+        return activeSearchTags.containsKey(tagName) && searchType == SearchType.PERSON;
+    }
+
+    /**
+     * Returns true if the tag is active in search for listing.
+     */
+    public boolean isActiveForListing() {
+        return activeSearchTags.containsKey(tagName) && searchType == SearchType.LISTING;
+    }
+
+    /**
+     * * Checks if two tag have the same identity and data fields and associations.
      * This defines a stronger notion of equality between two tags.
      *
      * @param other Object to be compared with.

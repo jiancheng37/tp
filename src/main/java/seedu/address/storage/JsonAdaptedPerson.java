@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -56,7 +57,7 @@ class JsonAdaptedPerson {
      *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
-    public Person toModelType() throws IllegalValueException {
+    public Person toModelType(AddressBook addressBook) throws IllegalValueException {
         if (name == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
         }
@@ -88,7 +89,7 @@ class JsonAdaptedPerson {
         Person modelPerson = new Person(modelName, modelPhone, modelEmail, new ArrayList<>(), new ArrayList<>());
 
         for (JsonAdaptedPreference pref : preferences) {
-            modelPerson.addPropertyPreference(pref.toModelType(modelPerson));
+            modelPerson.addPropertyPreference(pref.toModelType(addressBook, modelPerson));
         }
 
         return modelPerson;

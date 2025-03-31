@@ -81,7 +81,7 @@ public class ListingCard extends UiPart<Region> {
         }
 
         priceRange.setText(listing.getPriceRange().toString());
-        if (listing.getPriceRange().isPriceMatched()) {
+        if (listing.getPriceRange().isPriceMatchedForListing()) {
             priceRange.getStyleClass().add("active");
         }
 
@@ -95,7 +95,7 @@ public class ListingCard extends UiPart<Region> {
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> {
                     Label label = new Label(tag.tagName);
-                    if (tag.isActive()) {
+                    if (tag.isActiveForListing()) {
                         label.getStyleClass().add("active");
                     }
                     tags.getChildren().add(label);

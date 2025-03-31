@@ -45,16 +45,14 @@
           </padding>
         </HBox>
 
-        <ScrollPane fitToWidth="true"  hbarPolicy="AS_NEEDED" maxHeight="600">
-          <GridPane fx:id="commandGrid" gridLinesVisible="true" hgap="0" vgap="0">
+        <ScrollPane fitToWidth="true" maxHeight="600">
+          <GridPane fx:id="commandGrid" gridLinesVisible="true">
             <padding>
-              <Insets top="10" right="0" bottom="10" left="0"/>
+              <Insets top="10" bottom="10"/>
             </padding>
 
-            <children>
-              <Label text="Command" styleClass="text-table-label"/>
-              <Label text="Description" styleClass="text-table-label" GridPane.columnIndex="1"/>
-            </children>
+            <Label text="Command" styleClass="text-table-label" minWidth="150"/>
+            <Label text="Description" styleClass="text-table-label" GridPane.columnIndex="1"/>
           </GridPane>
         </ScrollPane>
 

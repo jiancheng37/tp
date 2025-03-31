@@ -94,6 +94,11 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public ObservableList<Tag> getSortedFilteredTagList() {
+        return model.getSortedFilteredTagList();
+    }
+
+    @Override
     public Path getAddressBookFilePath() {
         return model.getAddressBookFilePath();
     }

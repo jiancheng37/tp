@@ -19,7 +19,6 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.price.PriceRange;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * Adds a {@code PropertyPreference} to a {@code Person} identified using it's displayed index in
@@ -44,8 +43,8 @@ public class AddPreferenceCommand extends Command {
             + PREFIX_NEW_TAG + "spacious";
 
     public static final String MESSAGE_SUCCESS = "New property preference added to %1$s";
-    public static final String MESSAGE_DUPLICATE_TAGS = "At least one of the new tags given already exist.";
-    public static final String MESSAGE_INVALID_TAGS = "At least one of the tags given does not exist.";
+    public static final String MESSAGE_DUPLICATE_TAGS = "At least one of the new tags given already exist.%1$s\n";
+    public static final String MESSAGE_INVALID_TAGS = "At least one of the tags given does not exist.%1$s\n";
 
     private final Index index;
     private final PriceRange priceRange;
@@ -76,15 +75,15 @@ public class AddPreferenceCommand extends Command {
 
         List<Person> lastShownList = model.getSortedFilteredPersonList();
         if (index.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            throw new CommandException(String.format(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, MESSAGE_USAGE));
         }
 
         if (!model.hasTags(tagSet)) {
-            throw new CommandException(MESSAGE_INVALID_TAGS);
+            throw new CommandException(String.format(MESSAGE_INVALID_TAGS, MESSAGE_USAGE));
         }
 
         if (model.hasNewTags(newTagSet)) {
-            throw new CommandException(MESSAGE_DUPLICATE_TAGS);
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_TAGS, MESSAGE_USAGE));
         }
 
         Person personToAddPreference = lastShownList.get(index.getZeroBased());
@@ -95,12 +94,11 @@ public class AddPreferenceCommand extends Command {
         Set<String> tagNames = new HashSet<>(tagSet);
         tagNames.addAll(newTagSet);
 
-        TagRegistry tagRegistry = TagRegistry.of();
         for (String tagName: tagNames) {
-            Tag tag = tagRegistry.get(tagName);
+            Tag tag = model.getTag(tagName);
             tag.addPropertyPreference(preference);
-            tagRegistry.setTag(tag, tag);
-            preference.addTag(tagRegistry.get(tagName));
+            model.setTag(tag, tag);
+            preference.addTag(model.getTag(tagName));
         }
 
         personToAddPreference.addPropertyPreference(preference);

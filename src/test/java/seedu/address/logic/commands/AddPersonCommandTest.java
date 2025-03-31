@@ -11,20 +11,24 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.SearchType;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
+import seedu.address.model.price.PriceRange;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
@@ -41,7 +45,8 @@ public class AddPersonCommandTest {
         AddPersonCommand addPersonCommand = new AddPersonCommand(validPerson);
         ModelStub modelStub = new ModelStubWithPerson(validPerson);
 
-        assertThrows(CommandException.class, AddPersonCommand.MESSAGE_DUPLICATE_PERSON, () -> addPersonCommand
+        assertThrows(CommandException.class, String.format(AddPersonCommand.MESSAGE_DUPLICATE_PERSON,
+                AddPersonCommand.MESSAGE_USAGE), () -> addPersonCommand
                 .execute(modelStub));
     }
 
@@ -84,6 +89,11 @@ public class AddPersonCommandTest {
         private final Set<String> storedTags = new HashSet<>();
 
         @Override
+        public void setSearch(List<Tag> tags, PriceRange priceRange, SearchType searchTypeEnum) {
+            throw new AssertionError("This method should not be called.");
+        };
+
+        @Override
         public void setUserPrefs(ReadOnlyUserPrefs userPrefs) {
             throw new AssertionError("This method should not be called.");
         }
@@ -124,7 +134,17 @@ public class AddPersonCommandTest {
         }
 
         @Override
+        public ObservableMap<String, Tag> getTagMap() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public ObservableList<Tag> getFilteredTagList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Tag> getSortedFilteredTagList() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -226,6 +246,16 @@ public class AddPersonCommandTest {
         @Override
         public void resetAllLists() {
             throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Tag getTag(String tagName) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean hasTag(String tag) {
+            return false;
         }
 
         @Override

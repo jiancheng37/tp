@@ -10,12 +10,12 @@ import java.util.Set;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.SearchType;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.person.predicates.PersonPropertyPreferencesContainAllTagsPredicate;
 import seedu.address.model.person.predicates.PropertyPreferencesContainAllActiveSearchTagsPredicate;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * Searches for persons whose property preferences contain all specified tags.
@@ -45,28 +45,26 @@ public class SearchPersonByTagCommand extends Command {
         requireNonNull(model);
 
         if (tagsToSearch.isEmpty()) {
-            throw new CommandException(Messages.MESSAGE_SEARCH_PERSON_TAG_MISSING_PARAMS);
+            throw new CommandException(String.format(Messages.MESSAGE_SEARCH_PERSON_TAG_MISSING_PARAMS, MESSAGE_USAGE));
         }
 
         // Validate each tag exists
         for (String tagName : tagsToSearch) {
-            if (!model.hasTags(Set.of(tagName))) {
+            if (!model.hasTag(tagName)) {
                 throw new CommandException(String
-                        .format(Messages.MESSAGE_SEARCH_PERSON_TAG_NOT_FOUND, tagName));
+                        .format(Messages.MESSAGE_TAG_DOES_NOT_EXIST, tagName, MESSAGE_USAGE));
             }
         }
 
         List<Tag> activeTags = new ArrayList<>();
         for (String tagName : tagsToSearch) {
-            activeTags.add(TagRegistry.of().get(tagName));
+            activeTags.add(model.getTag(tagName));
         }
-        Tag.setActiveSearchTags(activeTags);
 
+        model.resetAllLists();
+        model.setSearch(activeTags, null, SearchType.PERSON);
         PropertyPreference.setFilterPredicate(new PropertyPreferencesContainAllActiveSearchTagsPredicate());
-
-        PersonPropertyPreferencesContainAllTagsPredicate predicate =
-                new PersonPropertyPreferencesContainAllTagsPredicate(tagsToSearch);
-        model.updateFilteredPersonList(predicate);
+        model.updateFilteredPersonList(new PersonPropertyPreferencesContainAllTagsPredicate(tagsToSearch));
 
         List<Person> filteredPersons = model.getSortedFilteredPersonList();
 

@@ -1,7 +1,9 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,8 +14,6 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
-import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * An Immutable AddressBook that is serializable to JSON format.
@@ -49,7 +49,7 @@ class JsonSerializableAddressBook {
     public JsonSerializableAddressBook(ReadOnlyAddressBook source) {
         persons.addAll(source.getPersonList().stream().map(JsonAdaptedPerson::new).toList());
         listings.addAll(source.getListingList().stream().map(JsonAdaptedListing::new).toList());
-        tags.addAll(TagRegistry.of().asUnmodifiableObservableMap().keySet().stream().map(JsonAdaptedTag::new).toList());
+        tags.addAll(source.getTagMap().keySet().stream().map(JsonAdaptedTag::new).toList());
     }
 
     /**
@@ -59,7 +59,7 @@ class JsonSerializableAddressBook {
      */
     public AddressBook toModelType() throws IllegalValueException {
         AddressBook addressBook = new AddressBook();
-        addTags();
+        addTags(addressBook);
         addPersons(addressBook);
         addListings(addressBook);
 
@@ -72,8 +72,9 @@ class JsonSerializableAddressBook {
      * @throws IllegalValueException If there are duplicate persons.
      */
     private void addPersons(AddressBook addressBook) throws IllegalValueException {
+
         for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
-            Person person = jsonAdaptedPerson.toModelType();
+            Person person = jsonAdaptedPerson.toModelType(addressBook);
 
             if (addressBook.hasPerson(person)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
@@ -92,7 +93,7 @@ class JsonSerializableAddressBook {
     private void addListings(AddressBook addressBook)
             throws IllegalValueException {
         for (JsonAdaptedListing jsonAdaptedListing : listings) {
-            Listing listing = jsonAdaptedListing.toModelType(new ArrayList<>(addressBook.getPersonList()));
+            Listing listing = jsonAdaptedListing.toModelType(addressBook);
             if (addressBook.hasListing(listing)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_LISTING);
             }
@@ -101,15 +102,14 @@ class JsonSerializableAddressBook {
     }
 
     /**
-     * Adds tags from the JSON-adapted tags to the TagRegistry.
+     * Adds tags from the JSON-adapted tags to the AddressBook.
      */
-    private void addTags() throws IllegalValueException {
+    private void addTags(AddressBook addressBook) throws IllegalValueException {
+        Set<String> tagList = new HashSet<>();
         for (JsonAdaptedTag jsonAdaptedTag : tags) {
-            Tag tag = jsonAdaptedTag.toModelType();
-            if (!TagRegistry.of().contains(tag)) {
-                TagRegistry.of().add(tag);
-            }
+            tagList.add(jsonAdaptedTag.getTagName());
         }
+        addressBook.addTags(tagList);
     }
 
 }

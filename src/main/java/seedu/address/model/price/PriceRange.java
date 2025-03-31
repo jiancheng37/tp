@@ -5,6 +5,8 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.Objects;
 
+import seedu.address.model.SearchType;
+
 /**
  * Represents a Price Range in the real estate system.
  * Guarantees: immutable; is valid as Price is valid.
@@ -16,6 +18,7 @@ import java.util.Objects;
 public class PriceRange {
 
     private static PriceRange filteredAgainst = null;
+    private static SearchType searchType = SearchType.NONE;
 
     public final Price lowerBoundPrice;
     public final Price upperBoundPrice;
@@ -97,12 +100,20 @@ public class PriceRange {
     public boolean doPriceRangeOverlap(PriceRange otherPriceRange) {
         requireNonNull(otherPriceRange);
 
-        boolean isLowerBoundWithinRange = otherPriceRange.lowerBoundPrice == null
+        boolean isOtherLowerBoundWithinRange = otherPriceRange.lowerBoundPrice == null
                 || this.isPriceWithinRange(otherPriceRange.lowerBoundPrice);
-        boolean isUpperBoundWithinRange = otherPriceRange.upperBoundPrice == null
+
+        boolean isOtherUpperBoundWithinRange = otherPriceRange.upperBoundPrice == null
                 || this.isPriceWithinRange(otherPriceRange.upperBoundPrice);
 
-        return isLowerBoundWithinRange || isUpperBoundWithinRange;
+        boolean isThisLowerBoundWithinRange = this.lowerBoundPrice == null
+                || otherPriceRange.isPriceWithinRange(this.lowerBoundPrice);
+
+        boolean isThisUpperBoundWithinRange = this.upperBoundPrice == null
+                || otherPriceRange.isPriceWithinRange(this.upperBoundPrice);
+
+        return isOtherLowerBoundWithinRange || isOtherUpperBoundWithinRange
+                || (isThisLowerBoundWithinRange && isThisUpperBoundWithinRange);
     }
 
     /**
@@ -113,21 +124,40 @@ public class PriceRange {
     }
 
 
-
     /**
      * Sets the price range that is being filtered against.
      *
+     * @param newFilteredAgainst the price range to set.
      */
     public static void setFilteredAgainst(PriceRange newFilteredAgainst) {
         filteredAgainst = newFilteredAgainst;
     }
 
     /**
-     * Checks if the price range is matched against the filtered price range.
+     * Sets the price range to filter against.
      *
+     * @param searchType the search type to set.
      */
-    public boolean isPriceMatched() {
-        if (filteredAgainst == null) {
+    public static void setSearch(SearchType searchType) {
+        PriceRange.searchType = searchType;
+    }
+
+    /**
+     * Checks if the price range is matched against the filtered price range for a person.
+     */
+    public boolean isPriceMatchedForPerson() {
+        if (filteredAgainst == null || searchType != SearchType.PERSON) {
+            return false;
+        }
+
+        return this.doPriceRangeOverlap(filteredAgainst);
+    }
+
+    /**
+     * Checks if the price range is matched against the filtered price range for a listing.
+     */
+    public boolean isPriceMatchedForListing() {
+        if (filteredAgainst == null || searchType != SearchType.LISTING) {
             return false;
         }
 

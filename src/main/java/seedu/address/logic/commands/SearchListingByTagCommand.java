@@ -12,27 +12,27 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.SearchType;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.listing.predicates.ListingContainsAllTagsPredicate;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * Searches for {@code Listing}(s) whose tags contain all specified tags.
  */
-public class SearchPropertyByTagCommand extends Command {
-    public static final String COMMAND_WORD = "searchProperty";
+public class SearchListingByTagCommand extends Command {
+    public static final String COMMAND_WORD = "searchListing";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all properties with all specified tags.\n"
             + "Parameters: " + PREFIX_TAG + "TAG [" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " t/pet-friendly t/pool";
-    private static final Logger logger = LogsCenter.getLogger(SearchPropertyByTagCommand.class);
+    private static final Logger logger = LogsCenter.getLogger(SearchListingByTagCommand.class);
     private final Set<String> tagsToSearch;
 
     /**
-     * Constructs a {@code SearchPropertyByTagCommand} with the given set of tags.
+     * Constructs a {@code SearchListingByTagCommand} with the given set of tags.
      */
-    public SearchPropertyByTagCommand(Set<String> tagsToSearch) {
+    public SearchListingByTagCommand(Set<String> tagsToSearch) {
         requireNonNull(tagsToSearch);
         this.tagsToSearch = tagsToSearch;
     }
@@ -40,26 +40,28 @@ public class SearchPropertyByTagCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        logger.info("Executing SearchPropertyByTagCommand with tags: " + tagsToSearch);
+        logger.info("Executing SearchListingByTagCommand with tags: " + tagsToSearch);
 
         if (tagsToSearch.isEmpty()) {
-            throw new CommandException(Messages.MESSAGE_SEARCH_PROPERTY_TAG_MISSING_PARAMS);
+            throw new CommandException(String.format(Messages.MESSAGE_SEARCH_PROPERTY_TAG_MISSING_PARAMS,
+                    MESSAGE_USAGE));
         }
 
         // Validate each tag exists
         for (String tagName : tagsToSearch) {
-            if (!model.hasTags(Set.of(tagName))) {
+            if (!model.hasTag(tagName)) {
                 throw new CommandException(String
-                        .format(Messages.MESSAGE_SEARCH_PROPERTY_TAG_NOT_FOUND, tagName));
+                        .format(Messages.MESSAGE_TAG_DOES_NOT_EXIST, tagName, MESSAGE_USAGE));
             }
         }
 
         List<Tag> activeTags = new ArrayList<>();
         for (String tagName : tagsToSearch) {
-            activeTags.add(TagRegistry.of().get(tagName));
+            activeTags.add(model.getTag(tagName));
         }
-        Tag.setActiveSearchTags(activeTags);
 
+        model.resetAllLists();
+        model.setSearch(activeTags, null, SearchType.LISTING);
         ListingContainsAllTagsPredicate predicate = new ListingContainsAllTagsPredicate(tagsToSearch);
         model.updateFilteredListingList(predicate);
 
@@ -76,7 +78,7 @@ public class SearchPropertyByTagCommand extends Command {
     @Override
     public boolean equals(Object other) {
         return other == this
-                || (other instanceof SearchPropertyByTagCommand
-                && tagsToSearch.equals(((SearchPropertyByTagCommand) other).tagsToSearch));
+                || (other instanceof SearchListingByTagCommand
+                && tagsToSearch.equals(((SearchListingByTagCommand) other).tagsToSearch));
     }
 }

@@ -15,7 +15,6 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * Adds {@code Tag} to a {@code Listing} identified using it's displayed index in the addressbook.
@@ -34,10 +33,10 @@ public class AddListingTagCommand extends Command {
             + PREFIX_NEW_TAG + "spacious";
 
     public static final String MESSAGE_SUCCESS = "Adds tags to listing %1$s";
-    public static final String MESSAGE_DUPLICATE_TAGS = "At least one of the new tags given already exist.";
-    public static final String MESSAGE_INVALID_TAGS = "At least one of the tags given does not exist.";
+    public static final String MESSAGE_DUPLICATE_TAGS = "At least one of the new tags given already exist.\n%1$s";
+    public static final String MESSAGE_INVALID_TAGS = "At least one of the tags given does not exist.\n%1$s";
     public static final String MESSAGE_DUPLICATE_TAGS_IN_LISTING = "At least one of the "
-            + "tags given already exist in the listing.";
+            + "tags given already exist in the listing.\n%1$s";
 
     private final Index index;
     private final Set<String> tagSet;
@@ -64,35 +63,34 @@ public class AddListingTagCommand extends Command {
 
         List<Listing> lastShownList = model.getSortedFilteredListingList();
         if (index.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_LISTING_DISPLAYED_INDEX);
+            throw new CommandException(String.format(Messages.MESSAGE_INVALID_LISTING_DISPLAYED_INDEX, MESSAGE_USAGE));
         }
 
         if (!model.hasTags(tagSet)) {
-            throw new CommandException(MESSAGE_INVALID_TAGS);
+            throw new CommandException(String.format(MESSAGE_INVALID_TAGS, MESSAGE_USAGE));
         }
 
         if (model.hasNewTags(newTagSet)) {
-            throw new CommandException(MESSAGE_DUPLICATE_TAGS);
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_TAGS, MESSAGE_USAGE));
         }
         model.addTags(newTagSet);
 
         Listing listingToAddTags = lastShownList.get(index.getZeroBased());
-        TagRegistry tagRegistry = TagRegistry.of();
         Set<String> tagNames = new HashSet<>(tagSet);
         Set<Tag> tags = new HashSet<>();
         tagNames.addAll(newTagSet);
 
         for (String tagName : tagNames) {
-            Tag tag = tagRegistry.get(tagName);
+            Tag tag = model.getTag(tagName);
             if (listingToAddTags.getTags().contains(tag)) {
-                throw new CommandException(MESSAGE_DUPLICATE_TAGS_IN_LISTING);
+                throw new CommandException(String.format(MESSAGE_DUPLICATE_TAGS_IN_LISTING, MESSAGE_USAGE));
             }
             tags.add(tag);
         }
 
         for (Tag tag : tags) {
             tag.addListing(listingToAddTags);
-            tagRegistry.setTag(tag, tag);
+            model.setTag(tag, tag);
             listingToAddTags.addTag(tag);
         }
 

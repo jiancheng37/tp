@@ -24,27 +24,10 @@ import seedu.address.model.tag.exceptions.TagNotFoundException;
  *
  * TagRegistry is a singleton.
  */
-public class TagRegistry implements Iterable<Tag> {
-
-    // Singleton instance
-    private static final TagRegistry SINGLETON = new TagRegistry();
-
+public class UniqueTagMap implements Iterable<Tag> {
     private final ObservableMap<String, Tag> internalHashmap = FXCollections.observableHashMap();
     private final ObservableMap<String, Tag> internalUnmodifiableMap =
             FXCollections.unmodifiableObservableMap(internalHashmap);
-
-    // Private constructor to prevent instantiation
-    private TagRegistry() {}
-
-    /**
-     * Returns the singleton instance of the TagRegistry.
-     * Factory method of the TagRegistry class.
-     *
-     * @return singleton instance of the TagRegistry.
-     */
-    public static TagRegistry of() {
-        return SINGLETON;
-    }
 
     /**
      * Checks if the hashmap contains an equivalent tag with the same tag name as the given argument.

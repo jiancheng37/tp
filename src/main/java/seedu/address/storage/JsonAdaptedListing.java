@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javafx.collections.ObservableList;
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.listing.HouseNumber;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.listing.PostalCode;
@@ -16,7 +18,6 @@ import seedu.address.model.listing.PropertyName;
 import seedu.address.model.listing.UnitNumber;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 
 /**
@@ -91,7 +92,7 @@ class JsonAdaptedListing {
      *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
-    public Listing toModelType(ArrayList<Person> personList) throws IllegalValueException {
+    public Listing toModelType(AddressBook addressBook) throws IllegalValueException {
         if (postalCode == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     PostalCode.class.getSimpleName()));
@@ -131,20 +132,19 @@ class JsonAdaptedListing {
                 priceRange.toModelType(),
                 modelPropertyName,
                 new HashSet<>(),
-                getModelOwners(personList),
+                getModelOwners(addressBook.getPersonList()),
                 modelIsAvailable);
 
         for (JsonAdaptedTag jsonAdaptedTag : tags) {
-            TagRegistry tagRegistry = TagRegistry.of();
-            Tag tag = jsonAdaptedTag.toModelType();
+            Tag tag = jsonAdaptedTag.toModelType(addressBook);
 
             modelListing.addTag(tag);
             tag.addListing(modelListing);
 
-            tagRegistry.setTag(tag, tag);
+            addressBook.setTag(tag, tag);
         }
 
-        for (Person owner: modelListing.getOwners()) {
+        for (Person owner : modelListing.getOwners()) {
             owner.addListing(modelListing);
         }
 
@@ -152,7 +152,7 @@ class JsonAdaptedListing {
     }
 
 
-    private List<Person> getModelOwners(ArrayList<Person> personList) {
+    private List<Person> getModelOwners(ObservableList<Person> personList) {
         List<Person> owners = new ArrayList<>();
         for (String key : ownerKeys) {
 
