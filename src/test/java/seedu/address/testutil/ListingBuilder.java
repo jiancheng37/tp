@@ -11,6 +11,7 @@ import seedu.address.model.listing.PostalCode;
 import seedu.address.model.listing.PropertyName;
 import seedu.address.model.listing.UnitNumber;
 import seedu.address.model.person.Person;
+import seedu.address.model.price.Price;
 import seedu.address.model.price.PriceRange;
 import seedu.address.model.tag.Tag;
 
@@ -24,6 +25,8 @@ public class ListingBuilder {
     public static final String DEFAULT_HOUSE_NUMBER = "12A";
     public static final String DEFAULT_PROPERTY_NAME = "Test Property";
     public static final boolean DEFAULT_AVAILABILITY = true;
+    public static final String DEFAULT_LOWER_PRICE = "100000";
+    public static final String DEFAULT_UPPER_PRICE = "200000";
 
     private PostalCode postalCode;
     private UnitNumber unitNumber;
@@ -42,7 +45,7 @@ public class ListingBuilder {
         postalCode = new PostalCode(DEFAULT_POSTAL_CODE);
         unitNumber = new UnitNumber(DEFAULT_UNIT_NUMBER);
         houseNumber = null;
-        priceRange = new PriceRangeBuilder().build();
+        priceRange = new PriceRange(new Price(DEFAULT_LOWER_PRICE), new Price(DEFAULT_UPPER_PRICE));
         propertyName = null;
         tags = new HashSet<>();
         owners = new ArrayList<>();
@@ -124,6 +127,17 @@ public class ListingBuilder {
     }
 
     /**
+     * Parses the {@code tags} into a {@code Set<Tag>} and set it to the {@code Listing} that we are building.
+     */
+    public ListingBuilder withTags(String... tagNames) {
+        this.tags = new HashSet<>();
+        for (String tagName : tagNames) {
+            this.tags.add(new Tag(tagName, new ArrayList<>(), new ArrayList<>()));
+        }
+        return this;
+    }
+
+    /**
      * Sets the {@code owners} of the {@code Listing} that we are building.
      */
     public ListingBuilder withOwners(List<Person> owners) {
@@ -143,6 +157,7 @@ public class ListingBuilder {
         this.houseNumber = null;
         return this;
     }
+
 
     /**
      * Builds a {@code Listing} with the current attributes.

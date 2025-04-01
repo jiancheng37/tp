@@ -23,7 +23,6 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.price.PriceRange;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 import seedu.address.testutil.PriceRangeBuilder;
 
 /**
@@ -40,112 +39,154 @@ public class AddPreferenceCommandTest {
         model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
 
-        // Ensure there are some registered tags for testing
-        model.addTags(Set.of("modern", "cozy"));
-        expectedModel.addTags(Set.of("modern", "cozy"));
+        // Register tags in both models
+        Set<String> tagNames = Set.of("modern", "luxury");
+        model.addTags(tagNames);
+        expectedModel.addTags(tagNames);
     }
 
     @Test
-    public void execute_validIndexAndPreference_success() {
-        Person personToAddPreference = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+    public void execute_validIndexUnfilteredList_success() {
+        // Create a price range for the preference
         PriceRange priceRange = new PriceRangeBuilder()
                 .withLowerBoundPrice("100000")
                 .withUpperBoundPrice("200000")
                 .build();
 
-        // Use only existing tags for this test to avoid registration issues
+        // Add a person with matching preferences
+        Person person = model.getSortedFilteredPersonList().get(0);
         Set<String> existingTags = Set.of("modern");
-        Set<String> newTags = Set.of(); // Empty set for simplicity
+        Set<String> newTags = Set.of();
 
-        AddPreferenceCommand addCommand = new AddPreferenceCommand(
-                INDEX_FIRST_PERSON, priceRange, existingTags, newTags);
-
-        // Update expected model to reflect changes after execution
-        Person expectedPerson = expectedModel.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-
-        Set<Tag> expectedTagSet = new HashSet<>();
-        TagRegistry tagRegistry = TagRegistry.of();
+        // Create the expected model state
+        Person expectedPerson = expectedModel.getSortedFilteredPersonList().get(0);
+        PropertyPreference expectedPreference = new PropertyPreference(
+                priceRange,
+                new HashSet<>(),
+                expectedPerson);
 
         // Add tags to the preference
-        for (String tagName : existingTags) {
-            expectedTagSet.add(tagRegistry.get(tagName.toUpperCase()));
-        }
+        Tag expectedTag = expectedModel.getTag("modern");
+        expectedTag.addPropertyPreference(expectedPreference);
+        expectedModel.setTag(expectedTag, expectedTag);
+        expectedPreference.addTag(expectedTag);
 
-        PropertyPreference expectedPreference = new PropertyPreference(priceRange, expectedTagSet, expectedPerson);
         expectedPerson.addPropertyPreference(expectedPreference);
+        expectedModel.setPerson(expectedPerson, expectedPerson);
+        expectedModel.resetAllLists();
 
+        // Set up the command
+        AddPreferenceCommand addPreferenceCommand = new AddPreferenceCommand(
+                INDEX_FIRST_PERSON,
+                priceRange,
+                existingTags,
+                newTags);
+
+        // Prepare the expected success message
         String expectedMessage = String.format(AddPreferenceCommand.MESSAGE_SUCCESS,
                 Messages.format(expectedPerson, expectedPreference));
 
-        assertCommandSuccess(addCommand, model, expectedMessage, expectedModel);
+        // Execute the command and verify the result
+        assertCommandSuccess(addPreferenceCommand, model, expectedMessage, expectedModel);
     }
 
     @Test
-    public void execute_invalidIndex_throwsCommandException() {
-        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
-        PriceRange priceRange = new PriceRangeBuilder().build();
+    public void execute_invalidPersonIndexUnfilteredList_failure() {
+        Index outOfBoundIndex = Index.fromOneBased(model.getSortedFilteredPersonList().size() + 1);
+        PriceRange priceRange = new PriceRangeBuilder()
+                .withLowerBoundPrice("100000")
+                .withUpperBoundPrice("200000")
+                .build();
+        Set<String> existingTags = Set.of("modern");
+        Set<String> newTags = Set.of();
+        AddPreferenceCommand addPreferenceCommand = new AddPreferenceCommand(
+                outOfBoundIndex,
+                priceRange,
+                existingTags,
+                newTags);
 
-        AddPreferenceCommand addCommand = new AddPreferenceCommand(
-                outOfBoundIndex, priceRange, Set.of(), Set.of());
-
-        assertCommandFailure(addCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(addPreferenceCommand, model,
+                String.format(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, AddPreferenceCommand.MESSAGE_USAGE));
     }
 
     @Test
     public void execute_invalidExistingTags_throwsCommandException() {
-        PriceRange priceRange = new PriceRangeBuilder().build();
-        Set<String> nonExistentTags = Set.of("nonexistent");
+        PriceRange priceRange = new PriceRangeBuilder()
+                .withLowerBoundPrice("100000")
+                .withUpperBoundPrice("200000")
+                .build();
+        Set<String> existingTags = Set.of("nonexistent");
+        Set<String> newTags = Set.of();
+        AddPreferenceCommand addPreferenceCommand = new AddPreferenceCommand(
+                INDEX_FIRST_PERSON,
+                priceRange,
+                existingTags,
+                newTags);
 
-        AddPreferenceCommand addCommand = new AddPreferenceCommand(
-                INDEX_FIRST_PERSON, priceRange, nonExistentTags, Set.of());
-
-        assertCommandFailure(addCommand, model, AddPreferenceCommand.MESSAGE_INVALID_TAGS);
+        assertCommandFailure(addPreferenceCommand, model,
+                String.format(AddPreferenceCommand.MESSAGE_INVALID_TAGS, AddPreferenceCommand.MESSAGE_USAGE));
     }
 
     @Test
     public void execute_duplicateNewTags_throwsCommandException() {
-        PriceRange priceRange = new PriceRangeBuilder().build();
-        Set<String> duplicateTags = Set.of("modern"); // Already added in setUp
+        PriceRange priceRange = new PriceRangeBuilder()
+                .withLowerBoundPrice("100000")
+                .withUpperBoundPrice("200000")
+                .build();
+        Set<String> existingTags = Set.of();
+        Set<String> newTags = Set.of("modern"); // Already exists in model
+        AddPreferenceCommand addPreferenceCommand = new AddPreferenceCommand(
+                INDEX_FIRST_PERSON,
+                priceRange,
+                existingTags,
+                newTags);
 
-        AddPreferenceCommand addCommand = new AddPreferenceCommand(
-                INDEX_FIRST_PERSON, priceRange, Set.of(), duplicateTags);
-
-        assertCommandFailure(addCommand, model, AddPreferenceCommand.MESSAGE_DUPLICATE_TAGS);
+        assertCommandFailure(addPreferenceCommand, model,
+                String.format(AddPreferenceCommand.MESSAGE_DUPLICATE_TAGS, AddPreferenceCommand.MESSAGE_USAGE));
     }
 
     @Test
     public void equals() {
-        PriceRange priceRange1 = new PriceRangeBuilder()
+        PriceRange priceRange = new PriceRangeBuilder()
                 .withLowerBoundPrice("100000")
                 .withUpperBoundPrice("200000")
                 .build();
-
-        PriceRange priceRange2 = new PriceRangeBuilder()
-                .withLowerBoundPrice("300000")
-                .withUpperBoundPrice("400000")
-                .build();
-
-        AddPreferenceCommand addCommand1 = new AddPreferenceCommand(
-                INDEX_FIRST_PERSON, priceRange1, Set.of(), Set.of());
-        AddPreferenceCommand addCommand2 = new AddPreferenceCommand(
-                INDEX_FIRST_PERSON, priceRange2, Set.of(), Set.of());
+        Set<String> existingTags = Set.of("modern");
+        Set<String> newTags = Set.of();
+        AddPreferenceCommand addPreferenceCommand = new AddPreferenceCommand(
+                INDEX_FIRST_PERSON,
+                priceRange,
+                existingTags,
+                newTags);
 
         // same object -> returns true
-        assertTrue(addCommand1.equals(addCommand1));
+        assertTrue(addPreferenceCommand.equals(addPreferenceCommand));
 
         // same values -> returns true
-        AddPreferenceCommand addCommand1Copy = new AddPreferenceCommand(
-                INDEX_FIRST_PERSON, priceRange1, Set.of(), Set.of());
-        assertTrue(addCommand1.equals(addCommand1Copy));
+        AddPreferenceCommand addPreferenceCommandCopy = new AddPreferenceCommand(
+                INDEX_FIRST_PERSON,
+                priceRange,
+                existingTags,
+                newTags);
+        assertTrue(addPreferenceCommand.equals(addPreferenceCommandCopy));
 
         // different types -> returns false
-        assertFalse(addCommand1.equals(1));
+        assertFalse(addPreferenceCommand.equals(1));
 
         // null -> returns false
-        assertFalse(addCommand1.equals(null));
+        assertFalse(addPreferenceCommand.equals(null));
 
         // different price range -> returns false
-        assertFalse(addCommand1.equals(addCommand2));
+        PriceRange differentPriceRange = new PriceRangeBuilder()
+                .withLowerBoundPrice("200000")
+                .withUpperBoundPrice("300000")
+                .build();
+        AddPreferenceCommand addPreferenceCommandDifferentPrice = new AddPreferenceCommand(
+                INDEX_FIRST_PERSON,
+                differentPriceRange,
+                existingTags,
+                newTags);
+        assertFalse(addPreferenceCommand.equals(addPreferenceCommandDifferentPrice));
     }
 
     @Test
@@ -154,10 +195,15 @@ public class AddPreferenceCommandTest {
                 .withLowerBoundPrice("100000")
                 .withUpperBoundPrice("200000")
                 .build();
+        Set<String> existingTags = Set.of("modern");
+        Set<String> newTags = Set.of();
+        AddPreferenceCommand addPreferenceCommand = new AddPreferenceCommand(
+                INDEX_FIRST_PERSON,
+                priceRange,
+                existingTags,
+                newTags);
 
-        AddPreferenceCommand addCommand = new AddPreferenceCommand(
-                INDEX_FIRST_PERSON, priceRange, Set.of("modern"), Set.of("premium"));
         String expected = AddPreferenceCommand.class.getCanonicalName() + "{priceRange=" + priceRange + "}";
-        assertEquals(expected, addCommand.toString());
+        assertEquals(expected, addPreferenceCommand.toString());
     }
 }

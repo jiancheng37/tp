@@ -6,7 +6,6 @@ import java.util.List;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.tag.Tag;
-import seedu.address.model.tag.TagRegistry;
 
 /**
  * A utility class to help with building Tag objects.
@@ -60,23 +59,9 @@ public class TagBuilder {
     }
 
     /**
-     * Builds a {@code Tag} with the current attributes and ensures it's registered.
-     * This will either get an existing tag with the same name or create and register a new one.
+     * Builds a new {@code Tag} with the current attributes.
      */
     public Tag build() {
-        TagRegistry tagRegistry = TagRegistry.of();
-
-        // Convert to uppercase for consistency with Tag class
-        String upperTagName = tagName.toUpperCase();
-
-        // First check if tag already exists in registry
-        try {
-            return tagRegistry.get(upperTagName);
-        } catch (Exception e) {
-            // Tag doesn't exist, create and register it
-            Tag newTag = new Tag(tagName, propertyPreferences, listings);
-            tagRegistry.add(newTag);
-            return newTag;
-        }
+        return new Tag(tagName, propertyPreferences, listings);
     }
 }
