@@ -32,4 +32,23 @@ public class ListTagCommand extends Command {
         model.updateFilteredTagList(PREDICATE_SHOW_ALL_TAGS);
         return new CommandResult(MESSAGE_SUCCESS);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        // instanceof handles nulls
+        if (!(other instanceof ListTagCommand)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return ListTagCommand.class.getCanonicalName() + "{}";
+    }
 }

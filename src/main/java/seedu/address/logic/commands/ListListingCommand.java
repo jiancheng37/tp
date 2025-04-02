@@ -34,4 +34,23 @@ public class ListListingCommand extends Command {
         model.updateSortedFilteredListingList(COMPARATOR_SHOW_ALL_LISTINGS);
         return new CommandResult(MESSAGE_SUCCESS);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        // instanceof handles nulls
+        if (!(other instanceof ListListingCommand)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return ListListingCommand.class.getCanonicalName() + "{}";
+    }
 }
