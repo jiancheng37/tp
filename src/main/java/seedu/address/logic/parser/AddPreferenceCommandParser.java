@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_ARGUMENTS_EMPTY;
+import static seedu.address.logic.Messages.MESSAGE_LOWER_GREATER_THAN_UPPER_FOR_PRICE;
 import static seedu.address.logic.Messages.MESSAGE_ONE_INDEX_EXPECTED;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOWER_BOUND_PRICE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NEW_TAG;
@@ -45,7 +46,7 @@ public class AddPreferenceCommandParser implements Parser<AddPreferenceCommand> 
         return new AddPreferenceCommand(index, priceRange, tagList, newTagList);
     }
 
-    private static PriceRange createPriceRange(Price lowerBoundPrice, Price upperBoundPrice) {
+    private static PriceRange createPriceRange(Price lowerBoundPrice, Price upperBoundPrice) throws ParseException {
         if (lowerBoundPrice == null && upperBoundPrice == null) {
             return new PriceRange();
         } else if (lowerBoundPrice == null) {
@@ -53,7 +54,12 @@ public class AddPreferenceCommandParser implements Parser<AddPreferenceCommand> 
         } else if (upperBoundPrice == null) {
             return new PriceRange(lowerBoundPrice, false);
         } else {
-            return new PriceRange(lowerBoundPrice, upperBoundPrice);
+            try {
+                return new PriceRange(lowerBoundPrice, upperBoundPrice);
+            } catch (IllegalArgumentException e) {
+                throw new ParseException(String.format(MESSAGE_LOWER_GREATER_THAN_UPPER_FOR_PRICE,
+                        AddPreferenceCommand.MESSAGE_USAGE));
+            }
         }
     }
 

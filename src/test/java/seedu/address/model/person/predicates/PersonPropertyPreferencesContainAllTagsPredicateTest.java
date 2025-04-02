@@ -15,13 +15,14 @@ import seedu.address.model.person.Phone;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.price.Price;
 import seedu.address.model.price.PriceRange;
+import seedu.address.model.search.predicates.PersonPropertyPreferencesContainAllTagsPredicate;
 import seedu.address.model.tag.Tag;
 
 public class PersonPropertyPreferencesContainAllTagsPredicateTest {
 
     private final Person dummyPerson = new Person(
             new Name("Dummy"),
-            new Phone("00000000"),
+            new Phone("10000000"),
             new Email("dummy@example.com"),
             List.of(),
             List.of()

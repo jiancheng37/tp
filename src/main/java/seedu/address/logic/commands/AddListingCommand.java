@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_HOUSE_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOWER_BOUND_PRICE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NEW_TAG;
@@ -64,7 +65,7 @@ public class AddListingCommand extends Command {
      * @param newTagSet Set of new tags to be added to the tag registry.
      */
     public AddListingCommand(Listing listing, Set<String> tagSet, Set<String> newTagSet) {
-        requireNonNull(listing);
+        requireAllNonNull(listing, tagSet, newTagSet);
         toAdd = listing;
         this.tagSet = tagSet;
         this.newTagSet = newTagSet;

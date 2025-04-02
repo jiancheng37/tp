@@ -1,5 +1,6 @@
 package seedu.address.model.tag;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
@@ -8,10 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.SearchType;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.PropertyPreference;
 
@@ -21,14 +19,10 @@ import seedu.address.model.person.PropertyPreference;
  * all details are present and not null. Associations are mutable.
  */
 public class Tag {
-
     public static final String MESSAGE_CONSTRAINTS = "Tags must be between 2 and 30 characters long and can only "
             + "contain letters, numbers, apostrophes, spaces, periods, hyphens, underscores, plus, and ampersands. "
             + "The tag cannot be blank and must not already exist (unless for deleting).";
     public static final String VALIDATION_REGEX = "^[a-zA-Z0-9' ._+&-]{2,30}$";
-
-    private static final ObservableMap<String, Tag> activeSearchTags = FXCollections.observableHashMap();
-    private static SearchType searchType = SearchType.NONE;
 
     // Identity fields
     public final String tagName;
@@ -74,11 +68,25 @@ public class Tag {
         return Collections.unmodifiableList(propertyPreferences);
     }
 
+    /**
+     * Adds a property preference to the tracking list of property preferences that use the tag.
+     *
+     * @param toAdd A valid property preference.
+     */
     public void addPropertyPreference(PropertyPreference toAdd) {
+        requireNonNull(toAdd);
+
         this.propertyPreferences.add(toAdd);
     }
 
+    /**
+     * Removes a property preference from the tracking list of property preferences that use the tag.
+     *
+     * @param toDelete A valid property preference.
+     */
     public void removePropertyPreference(PropertyPreference toDelete) {
+        requireNonNull(toDelete);
+
         this.propertyPreferences.remove(toDelete);
     }
 
@@ -90,11 +98,25 @@ public class Tag {
         return Collections.unmodifiableList(listings);
     }
 
+    /**
+     * Adds a listing to the tracking list of listings that use the tag.
+     *
+     * @param toAdd A valid listing.
+     */
     public void addListing(Listing toAdd) {
+        requireNonNull(toAdd);
+
         this.listings.add(toAdd);
     }
 
+    /**
+     * Removes a listing from the tracking list of listings that use the tag.
+     *
+     * @param toDelete A valid listing.
+     */
     public void removeListing(Listing toDelete) {
+        requireNonNull(toDelete);
+
         this.listings.remove(toDelete);
     }
 
@@ -119,52 +141,6 @@ public class Tag {
         return getNumPropertyPreferences() + getNumListings();
     }
 
-    /**
-     * Returns the active search tags list as an unmodifiable {@code ObservableMap}.
-     *
-     * @return the unmodifiable map of ActiveSearchTags.
-     */
-    public static ObservableMap<String, Tag> getActiveSearchTags() {
-        return FXCollections.unmodifiableObservableMap(activeSearchTags);
-    }
-
-    /**
-     * Replaces the contents of active search tags hashmap with {@code tags}.
-     * {@code tags} must not contain duplicate tags.
-     *
-     * @param tags the replacement list.
-     */
-    public static void setActiveSearchTags(List<Tag> tags) {
-        requireAllNonNull(tags);
-
-        activeSearchTags.clear();
-        for (Tag tag : tags) {
-            activeSearchTags.put(tag.getTagName(), tag);
-        }
-    }
-
-    /**
-     * Sets the search type for the tag
-     *
-     * @param searchType
-     */
-    public static void setSearch(SearchType searchType) {
-        Tag.searchType = searchType;
-    }
-
-    /**
-     * Returns true if the tag is active in search for person.
-     */
-    public boolean isActiveForPerson() {
-        return activeSearchTags.containsKey(tagName) && searchType == SearchType.PERSON;
-    }
-
-    /**
-     * Returns true if the tag is active in search for listing.
-     */
-    public boolean isActiveForListing() {
-        return activeSearchTags.containsKey(tagName) && searchType == SearchType.LISTING;
-    }
 
     /**
      * * Checks if two tag have the same identity and data fields and associations.

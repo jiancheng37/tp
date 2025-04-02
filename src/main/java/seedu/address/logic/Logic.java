@@ -10,6 +10,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
+import seedu.address.model.search.SearchContext;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -78,4 +79,8 @@ public interface Logic {
      */
     void setGuiSettings(GuiSettings guiSettings);
 
+    /**
+     * Returns the current search context.
+     */
+    SearchContext getSearchContext();
 }

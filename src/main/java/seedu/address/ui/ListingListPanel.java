@@ -9,13 +9,17 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.listing.Listing;
+import seedu.address.model.search.SearchContext;
 
 /**
  * Panel containing the list of properties.
  */
 public class ListingListPanel extends UiPart<Region> {
     private static final String FXML = "ListingListPanel.fxml";
+    private static final int INDEX_OFFSET = 1;
+
     private final Logger logger = LogsCenter.getLogger(ListingListPanel.class);
+    private final SearchContext searchContext;
 
     @FXML
     private ListView<Listing> propertyListView;
@@ -23,12 +27,12 @@ public class ListingListPanel extends UiPart<Region> {
     /**
      * Creates a {@code ListingListPanel} with the given {@code ObservableList}.
      */
-    public ListingListPanel(ObservableList<Listing> propertyList) {
+    public ListingListPanel(ObservableList<Listing> propertyList, SearchContext searchContext) {
         super(FXML);
+        this.searchContext = searchContext;
         propertyListView.setItems(propertyList);
         propertyListView.setCellFactory(listView -> new ListingListViewCell());
     }
-
 
     /**
      * Custom {@code ListCell} that displays the graphics of a {@code Listing} using a {@code ListingCard}.
@@ -42,9 +46,8 @@ public class ListingListPanel extends UiPart<Region> {
                 setGraphic(null);
                 setText(null);
             } else {
-                setGraphic(new ListingCard(property, getIndex() + 1).getRoot());
+                setGraphic(new ListingCard(property, getIndex() + INDEX_OFFSET, searchContext).getRoot());
             }
         }
     }
-
 }

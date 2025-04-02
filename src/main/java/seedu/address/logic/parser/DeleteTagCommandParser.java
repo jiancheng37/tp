@@ -23,7 +23,7 @@ public class DeleteTagCommandParser implements Parser<DeleteTagCommand> {
      */
     public DeleteTagCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_TAG);
-
+        argMultimap.verifyNoDuplicateTagValues(DeleteTagCommand.MESSAGE_USAGE);
         checkCommandFormat(argMultimap);
 
         Set<String> deleteTagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));

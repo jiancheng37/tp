@@ -16,6 +16,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.search.SearchContext;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -119,14 +120,16 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        tagListPanel = new TagListPanel(logic.getSortedFilteredTagList());
-        ;
+
+        SearchContext searchContext = logic.getSearchContext();
+
+        tagListPanel = new TagListPanel(logic.getSortedFilteredTagList(), searchContext);
         tagListPanelPlaceholder.getChildren().add(tagListPanel.getRoot());
 
-        personListPanel = new PersonListPanel(logic.getSortedFilteredPersonList());
+        personListPanel = new PersonListPanel(logic.getSortedFilteredPersonList(), searchContext);
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
-        listingListPanel = new ListingListPanel(logic.getSortedFilteredListingList());
+        listingListPanel = new ListingListPanel(logic.getSortedFilteredListingList(), searchContext);
         listingListPanelPlaceholder.getChildren().add(listingListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();

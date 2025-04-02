@@ -3,7 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import seedu.address.commons.core.index.Index;
@@ -11,26 +11,24 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.SearchType;
-import seedu.address.model.listing.comparators.ListingPreferenceScoreComparator;
-import seedu.address.model.listing.predicates.ListingMatchesPreferencePredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PropertyPreference;
-import seedu.address.model.price.PriceRange;
-import seedu.address.model.tag.Tag;
+import seedu.address.model.search.SearchType;
+import seedu.address.model.search.comparators.ListingPreferenceScoreComparator;
+import seedu.address.model.search.predicates.ListingMatchesPreferencePredicate;
 
 /**
  * Find matches for @{code Person}'s {@code PropertyPreference} based on tags and attributes (i.e. within price range),
  * ranking them based on number of tags and attributes matching.
  */
-public class MatchPersonCommand extends Command {
+public class MatchPreferenceCommand extends Command {
 
-    public static final String COMMAND_WORD = "matchPerson";
+    public static final String COMMAND_WORD = "matchPreference";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Find listings that match a person's property preference identified by index number used "
             + "in the displayed person and preference list.\n"
-            + "Parameters: PERSON_INDEX  (must be a positive integer) PREFERENCE_INDEX (must be a positive integer)\n"
+            + "Parameters: PERSON_INDEX (must be a positive integer) PREFERENCE_INDEX (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1 2";
 
     public static final String MESSAGE_MATCH_PERSON_SUCCESS = "Matched Listings for %1$s's Preference - "
@@ -40,12 +38,12 @@ public class MatchPersonCommand extends Command {
     private final Index targetPreferenceIndex;
 
     /**
-     * Creates a {@code MatchPersonCommand} to match {@code Listing}s from the specified {@code PropertyPreference}.
+     * Creates a {@code MatchPreferenceCommand} to match {@code Listing}s from the specified {@code PropertyPreference}.
      *
      * @param targetPersonIndex     Index of the person in the filtered person list to delete the preference from.
      * @param targetPreferenceIndex Index of the preference in the person to delete.
      */
-    public MatchPersonCommand(Index targetPersonIndex, Index targetPreferenceIndex) {
+    public MatchPreferenceCommand(Index targetPersonIndex, Index targetPreferenceIndex) {
         this.targetPersonIndex = targetPersonIndex;
         this.targetPreferenceIndex = targetPreferenceIndex;
     }
@@ -54,8 +52,9 @@ public class MatchPersonCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         List<Person> lastShownList = model.getSortedFilteredPersonList();
-        PriceRange.setFilteredAgainst(null);
-        Tag.setActiveSearchTags(new ArrayList<>());
+
+        model.getSearchContext().setActivePriceRange(null);
+        model.getSearchContext().setActiveSearchTags(new HashSet<>());
 
         if (targetPersonIndex.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(String.format(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, MESSAGE_USAGE));
@@ -63,7 +62,9 @@ public class MatchPersonCommand extends Command {
         Person targetPerson = lastShownList.get(targetPersonIndex.getZeroBased());
 
         List<PropertyPreference> targetPreferenceList = targetPerson.getPropertyPreferences()
-                .stream().filter(PropertyPreference::isFiltered).toList();
+                .stream()
+                .filter(preference -> model.getSearchContext().matches(preference))
+                .toList();
 
         if (targetPreferenceIndex.getZeroBased() >= targetPreferenceList.size()) {
             throw new CommandException(String.format(Messages.MESSAGE_INVALID_PREFERENCE_DISPLAYED_INDEX,
@@ -86,9 +87,10 @@ public class MatchPersonCommand extends Command {
 
         model.resetAllLists();
 
-        model.setSearch(preferenceToMatch.getTags().stream().toList(),
+        model.setSearch(preferenceToMatch.getTags(),
                 preferenceToMatch.getPriceRange(),
-                SearchType.LISTING);
+                SearchType.LISTING,
+                Model.PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
 
         model.updateFilteredListingList(new ListingMatchesPreferencePredicate(preferenceToMatch));
         model.updateSortedFilteredListingList(new ListingPreferenceScoreComparator(preferenceToMatch));
@@ -101,11 +103,11 @@ public class MatchPersonCommand extends Command {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof MatchPersonCommand)) {
+        if (!(other instanceof MatchPreferenceCommand)) {
             return false;
         }
 
-        MatchPersonCommand otherDeleteCommand = (MatchPersonCommand) other;
+        MatchPreferenceCommand otherDeleteCommand = (MatchPreferenceCommand) other;
         return targetPersonIndex.equals(otherDeleteCommand.targetPersonIndex)
                 && targetPreferenceIndex.equals(otherDeleteCommand.targetPreferenceIndex);
     }

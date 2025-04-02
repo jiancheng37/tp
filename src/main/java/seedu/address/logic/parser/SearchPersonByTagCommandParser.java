@@ -19,7 +19,7 @@ public class SearchPersonByTagCommandParser implements Parser<SearchPersonByTagC
         requireNonNull(args);
 
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_TAG);
-
+        argMultimap.verifyNoDuplicateTagValues(SearchPersonByTagCommand.MESSAGE_USAGE);
         checkCommandFormat(argMultimap);
 
         Set<String> tags = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));

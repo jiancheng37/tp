@@ -17,6 +17,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.price.Price;
 import seedu.address.model.price.PriceRange;
+import seedu.address.model.search.predicates.ListingContainsAllTagsPredicate;
 import seedu.address.model.tag.Tag;
 
 public class ListingContainsAllTagsPredicateTest {

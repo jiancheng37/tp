@@ -17,6 +17,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
+import seedu.address.model.search.SearchContext;
 import seedu.address.model.tag.Tag;
 import seedu.address.storage.Storage;
 
@@ -113,4 +114,8 @@ public class LogicManager implements Logic {
         model.setGuiSettings(guiSettings);
     }
 
+    @Override
+    public SearchContext getSearchContext() {
+        return model.getSearchContext();
+    }
 }

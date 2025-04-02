@@ -22,6 +22,7 @@ public class AddTagCommandParser implements Parser<AddTagCommand> {
      */
     public AddTagCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NEW_TAG);
+        argMultimap.verifyNoDuplicateTagValues(AddTagCommand.MESSAGE_USAGE);
         checkCommandFormat(argMultimap);
 
         Set<String> newTagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_NEW_TAG));

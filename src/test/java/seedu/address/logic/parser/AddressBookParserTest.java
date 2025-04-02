@@ -16,9 +16,9 @@ import seedu.address.logic.commands.AddPersonCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeletePersonCommand;
 import seedu.address.logic.commands.ExitCommand;
-import seedu.address.logic.commands.FindPersonCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListPersonCommand;
+import seedu.address.logic.commands.SearchPersonByName;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
@@ -57,9 +57,9 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_find() throws Exception {
         List<String> keywords = Arrays.asList("Alice", "Bob");
-        FindPersonCommand command = (FindPersonCommand) parser.parseCommand("findPerson Alice Bob");
+        SearchPersonByName command = (SearchPersonByName) parser.parseCommand("searchPersonName Alice Bob");
 
-        assertEquals(new FindPersonCommand(keywords), command);
+        assertEquals(new SearchPersonByName(keywords), command);
     }
 
     @Test

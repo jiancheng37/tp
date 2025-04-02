@@ -13,10 +13,10 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.stage.Stage?>
 
-<fx:root minHeight="600" minWidth="1280" onCloseRequest="#handleExit" title="Address App" type="javafx.stage.Stage"
+<fx:root minHeight="600" minWidth="1280" onCloseRequest="#handleExit" title="MatchEstate" type="javafx.stage.Stage"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <icons>
-    <Image url="@/images/address_book_32.png"/>
+    <Image url="@/images/match_estate.png"/>
   </icons>
   <scene>
     <Scene>

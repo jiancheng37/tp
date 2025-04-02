@@ -1,4 +1,4 @@
-package seedu.address.model.listing.predicates;
+package seedu.address.model.search.predicates;
 
 import java.util.function.Predicate;
 

@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_ADD_LISTING_PREAMBLE_FOUND;
 import static seedu.address.logic.Messages.MESSAGE_HOUSE_OR_UNIT_NUMBER_REQUIRED;
+import static seedu.address.logic.Messages.MESSAGE_LOWER_GREATER_THAN_UPPER_FOR_PRICE;
 import static seedu.address.logic.Messages.MESSAGE_POSTAL_CODE_REQUIRED;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_HOUSE_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LOWER_BOUND_PRICE;
@@ -67,7 +68,7 @@ public class AddListingCommandParser implements Parser<AddListingCommand> {
         return new AddListingCommand(listing, tagList, newTagList);
     }
 
-    private static PriceRange createPriceRange(Price lowerBoundPrice, Price upperBoundPrice) {
+    private static PriceRange createPriceRange(Price lowerBoundPrice, Price upperBoundPrice) throws ParseException {
         if (lowerBoundPrice == null && upperBoundPrice == null) {
             return new PriceRange();
         } else if (lowerBoundPrice == null) {
@@ -75,7 +76,12 @@ public class AddListingCommandParser implements Parser<AddListingCommand> {
         } else if (upperBoundPrice == null) {
             return new PriceRange(lowerBoundPrice, false);
         } else {
-            return new PriceRange(lowerBoundPrice, upperBoundPrice);
+            try {
+                return new PriceRange(lowerBoundPrice, upperBoundPrice);
+            } catch (IllegalArgumentException e) {
+                throw new ParseException(String.format(MESSAGE_LOWER_GREATER_THAN_UPPER_FOR_PRICE,
+                        AddListingCommand.MESSAGE_USAGE));
+            }
         }
     }
 

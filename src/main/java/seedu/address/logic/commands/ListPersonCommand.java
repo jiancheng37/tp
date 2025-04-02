@@ -5,12 +5,11 @@ import static seedu.address.model.Model.COMPARATOR_SHOW_ALL_PERSONS;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import seedu.address.model.Model;
-import seedu.address.model.person.PropertyPreference;
-import seedu.address.model.price.PriceRange;
-import seedu.address.model.tag.Tag;
+import seedu.address.model.search.SearchContext;
+import seedu.address.model.search.SearchType;
 
 /**
  * Lists all persons in the address book to the user.
@@ -29,11 +28,20 @@ public class ListPersonCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
 
-        PriceRange.setFilteredAgainst(null);
-        Tag.setActiveSearchTags(new ArrayList<>());
+        SearchContext searchContext = model.getSearchContext();
 
-        PropertyPreference.setFilterPredicate(PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
+        // If the current search type is person, reset the search type to none
+        // and clear the search tags and price range.
+        if (searchContext.getSearchType() == SearchType.PERSON) {
+            searchContext.setSearchType(SearchType.NONE);
+            searchContext.setActivePriceRange(null);
+            searchContext.setActiveSearchTags(new HashSet<>());
+        }
 
+        // Reset the property preference predicate to show all property preferences.
+        searchContext.setPropertyPreferencePredicate(PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
+
+        // Reset the person predicate to show all persons and default sort.
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         model.updateSortedFilteredPersonList(COMPARATOR_SHOW_ALL_PERSONS); // Trigger re-render
 

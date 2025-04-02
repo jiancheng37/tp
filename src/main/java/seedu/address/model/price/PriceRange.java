@@ -2,10 +2,9 @@ package seedu.address.model.price;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Objects;
-
-import seedu.address.model.SearchType;
 
 /**
  * Represents a Price Range in the real estate system.
@@ -17,8 +16,13 @@ import seedu.address.model.SearchType;
  */
 public class PriceRange {
 
-    private static PriceRange filteredAgainst = null;
-    private static SearchType searchType = SearchType.NONE;
+    private static final String ANY_PRICE_STRING = "Any Price";
+    private static final String UP_TO_STRING = "Up to ";
+    private static final String FROM_STRING = "From ";
+    private static final String TO_STRING = " to ";
+    private static final int LESS_THAN = -1;
+    private static final int EQUAL_TO = 0;
+    private static final int GREATER_THAN = 1;
 
     public final Price lowerBoundPrice;
     public final Price upperBoundPrice;
@@ -38,7 +42,7 @@ public class PriceRange {
      * @param isUpperBound     if true, the singleBoundPrice is the upper bound, otherwise it is the lower bound.
      */
     public PriceRange(Price singleBoundPrice, boolean isUpperBound) {
-        requireNonNull(singleBoundPrice);
+        requireAllNonNull(singleBoundPrice, isUpperBound);
 
         if (isUpperBound) {
             this.lowerBoundPrice = null;
@@ -56,9 +60,8 @@ public class PriceRange {
      * @param upperBoundPrice the upper bound price.
      */
     public PriceRange(Price lowerBoundPrice, Price upperBoundPrice) {
-        requireNonNull(lowerBoundPrice);
-        requireNonNull(upperBoundPrice);
-        checkArgument(lowerBoundPrice.compare(upperBoundPrice) <= 0);
+        requireAllNonNull(lowerBoundPrice, upperBoundPrice);
+        checkArgument(lowerBoundPrice.compare(upperBoundPrice) <= EQUAL_TO);
         this.lowerBoundPrice = lowerBoundPrice;
         this.upperBoundPrice = upperBoundPrice;
     }
@@ -79,16 +82,17 @@ public class PriceRange {
 
         // If range is only upper bounded
         if (this.lowerBoundPrice == null) {
-            return otherPrice.compare(this.upperBoundPrice) <= 0;
+            return otherPrice.compare(this.upperBoundPrice) <= EQUAL_TO;
         }
 
         // If range is only lower bounded
         if (this.upperBoundPrice == null) {
-            return otherPrice.compare(this.lowerBoundPrice) >= 0;
+            return otherPrice.compare(this.lowerBoundPrice) >= EQUAL_TO;
         }
 
         // If range is bounded on both sides
-        return otherPrice.compare(this.lowerBoundPrice) >= 0 && otherPrice.compare(this.upperBoundPrice) <= 0;
+        return otherPrice.compare(this.lowerBoundPrice) >= EQUAL_TO
+            && otherPrice.compare(this.upperBoundPrice) <= EQUAL_TO;
     }
 
     /**
@@ -116,64 +120,16 @@ public class PriceRange {
                 || (isThisLowerBoundWithinRange && isThisUpperBoundWithinRange);
     }
 
-    /**
-     * Returns the price range that is being filtered against.
-     */
-    public static PriceRange getFilteredAgainst() {
-        return filteredAgainst;
-    }
-
-
-    /**
-     * Sets the price range that is being filtered against.
-     *
-     * @param newFilteredAgainst the price range to set.
-     */
-    public static void setFilteredAgainst(PriceRange newFilteredAgainst) {
-        filteredAgainst = newFilteredAgainst;
-    }
-
-    /**
-     * Sets the price range to filter against.
-     *
-     * @param searchType the search type to set.
-     */
-    public static void setSearch(SearchType searchType) {
-        PriceRange.searchType = searchType;
-    }
-
-    /**
-     * Checks if the price range is matched against the filtered price range for a person.
-     */
-    public boolean isPriceMatchedForPerson() {
-        if (filteredAgainst == null || searchType != SearchType.PERSON) {
-            return false;
-        }
-
-        return this.doPriceRangeOverlap(filteredAgainst);
-    }
-
-    /**
-     * Checks if the price range is matched against the filtered price range for a listing.
-     */
-    public boolean isPriceMatchedForListing() {
-        if (filteredAgainst == null || searchType != SearchType.LISTING) {
-            return false;
-        }
-
-        return this.doPriceRangeOverlap(filteredAgainst);
-    }
-
     @Override
     public String toString() {
         if (lowerBoundPrice == null && upperBoundPrice == null) {
-            return "Any Price";
+            return ANY_PRICE_STRING;
         } else if (lowerBoundPrice == null) {
-            return "Up to " + upperBoundPrice;
+            return UP_TO_STRING + upperBoundPrice;
         } else if (upperBoundPrice == null) {
-            return "From " + lowerBoundPrice;
+            return FROM_STRING + lowerBoundPrice;
         } else {
-            return lowerBoundPrice + " to " + upperBoundPrice;
+            return lowerBoundPrice + TO_STRING + upperBoundPrice;
         }
     }
 

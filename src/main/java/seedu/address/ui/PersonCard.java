@@ -12,6 +12,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PropertyPreference;
+import seedu.address.model.search.SearchContext;
 
 /**
  * An UI component that displays information of a {@code Person}.
@@ -41,7 +42,7 @@ public class PersonCard extends UiPart<Region> {
     /**
      * Creates a {@code PersonCode} with the given {@code Person}, index, and current search tags.
      */
-    public PersonCard(Person person, int displayedIndex) {
+    public PersonCard(Person person, int displayedIndex, SearchContext searchContext) {
         super(FXML);
         this.person = person;
         id.setText(displayedIndex + ". ");
@@ -58,7 +59,7 @@ public class PersonCard extends UiPart<Region> {
         // Filter preferences if search tags are present
         ObservableList<PropertyPreference> filteredPreferences = FXCollections.observableArrayList(
                 person.getPropertyPreferences().stream()
-                        .filter(PropertyPreference::isFiltered)
+                        .filter(searchContext::matches)
                         .collect(Collectors.toList())
         );
 
@@ -67,7 +68,7 @@ public class PersonCard extends UiPart<Region> {
             buyerTag.getStyleClass().add("buyer");
             tags.getChildren().add(buyerTag);
 
-            preferenceListPanel = new PreferenceListPanel(filteredPreferences);
+            preferenceListPanel = new PreferenceListPanel(filteredPreferences, searchContext);
             preferenceListPanelPlaceholder.getChildren().add(preferenceListPanel.getRoot());
         }
     }

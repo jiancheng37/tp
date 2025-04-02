@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -25,10 +24,12 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
-import seedu.address.model.SearchType;
 import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.price.PriceRange;
+import seedu.address.model.search.SearchContext;
+import seedu.address.model.search.SearchType;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
@@ -82,16 +83,45 @@ public class AddPersonCommandTest {
     }
 
     /**
-     * A default model stub that have all of the methods failing.
+     * A default model stub that has all methods failing except for specified ones.
      */
     private class ModelStub implements Model {
-
         private final Set<String> storedTags = new HashSet<>();
+        private final SearchContext searchContext = new SearchContext();
 
         @Override
-        public void setSearch(List<Tag> tags, PriceRange priceRange, SearchType searchTypeEnum) {
-            throw new AssertionError("This method should not be called.");
-        };
+        public SearchContext getSearchContext() {
+            return searchContext;
+        }
+
+        @Override
+        public void setSearch(Set<Tag> tags, PriceRange priceRange, SearchType searchType,
+                              Predicate<PropertyPreference> propertyPreferencePredicate) {
+            // Allow this method to be called for testing
+            searchContext.configureSearch(searchType, tags, priceRange, propertyPreferencePredicate);
+        }
+
+        @Override
+        public boolean hasTag(String tag) {
+            return storedTags.contains(tag);
+        }
+
+        @Override
+        public boolean hasTags(Set<String> tags) {
+            return storedTags.containsAll(tags);
+        }
+
+        @Override
+        public boolean hasNewTags(Set<String> tags) {
+            return tags.stream().noneMatch(storedTags::contains);
+        }
+
+        @Override
+        public void addTags(Set<String> tags) {
+            storedTags.addAll(tags);
+        }
+
+        // =========== Failing Methods ==================================================
 
         @Override
         public void setUserPrefs(ReadOnlyUserPrefs userPrefs) {
@@ -109,46 +139,6 @@ public class AddPersonCommandTest {
         }
 
         @Override
-        public void updateFilteredListingList(Predicate<Listing> predicate) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public void setTag(Tag target, Tag editedTag) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public void updateFilteredTagList(Predicate<Tag> predicate) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public ObservableList<Listing> getFilteredListingList() {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public ObservableList<Listing> getSortedFilteredListingList() {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public ObservableMap<String, Tag> getTagMap() {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public ObservableList<Tag> getFilteredTagList() {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public ObservableList<Tag> getSortedFilteredTagList() {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
         public void setGuiSettings(GuiSettings guiSettings) {
             throw new AssertionError("This method should not be called.");
         }
@@ -160,11 +150,6 @@ public class AddPersonCommandTest {
 
         @Override
         public void setAddressBookFilePath(Path addressBookFilePath) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public void addPerson(Person person) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -189,32 +174,12 @@ public class AddPersonCommandTest {
         }
 
         @Override
-        public void deleteListing(Listing target) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public void deleteTag(Tag target) {
+        public void addPerson(Person person) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
         public void setPerson(Person target, Person editedPerson) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public void setListing(Listing target, Listing editedListing) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public boolean hasListing(Listing listing) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public void addListing(Listing listing) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -239,12 +204,62 @@ public class AddPersonCommandTest {
         }
 
         @Override
+        public boolean hasListing(Listing listing) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addListing(Listing listing) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setListing(Listing target, Listing editedListing) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void deleteListing(Listing target) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Listing> getFilteredListingList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Listing> getSortedFilteredListingList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void updateFilteredListingList(Predicate<Listing> predicate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void updateSortedFilteredListingList(Comparator<Listing> comparator) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public void resetAllLists() {
+        public ObservableMap<String, Tag> getTagMap() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Tag> getFilteredTagList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Tag> getSortedFilteredTagList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void updateFilteredTagList(Predicate<Tag> predicate) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -254,23 +269,18 @@ public class AddPersonCommandTest {
         }
 
         @Override
-        public boolean hasTag(String tag) {
-            return false;
+        public void setTag(Tag target, Tag editedTag) {
+            throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public boolean hasTags(Set<String> tags) {
-            return false;
+        public void deleteTag(Tag tagToDelete) {
+            throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public boolean hasNewTags(Set<String> tags) {
-            return false;
-        }
-
-        @Override
-        public void addTags(Set<String> tags) {
-            storedTags.addAll(tags);
+        public void resetAllLists() {
+            throw new AssertionError("This method should not be called.");
         }
     }
 

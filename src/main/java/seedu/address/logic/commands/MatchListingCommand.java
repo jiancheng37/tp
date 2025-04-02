@@ -10,12 +10,11 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.SearchType;
 import seedu.address.model.listing.Listing;
-import seedu.address.model.person.PropertyPreference;
-import seedu.address.model.person.comparators.PersonListingScoreComparator;
-import seedu.address.model.person.predicates.PersonMatchesPropertyPredicate;
-import seedu.address.model.person.predicates.PropertyPreferencesContainAnyActiveSearchTagsPredicate;
+import seedu.address.model.search.SearchType;
+import seedu.address.model.search.comparators.PersonListingScoreComparator;
+import seedu.address.model.search.predicates.PersonMatchesPropertyPredicate;
+import seedu.address.model.search.predicates.PropertyPreferencesMatchesListingPredicate;
 
 /**
  * Matches a {@code Listing} identified using it's displayed index in the address book to
@@ -65,11 +64,11 @@ public class MatchListingCommand extends Command {
 
         model.resetAllLists();
 
-        model.setSearch(listingToMatch.getTags().stream().toList(),
+        model.setSearch(listingToMatch.getTags(),
                 listingToMatch.getPriceRange(),
-                SearchType.PERSON);
+                SearchType.PERSON,
+                new PropertyPreferencesMatchesListingPredicate(listingToMatch));
 
-        PropertyPreference.setFilterPredicate(new PropertyPreferencesContainAnyActiveSearchTagsPredicate());
         model.updateFilteredPersonList(new PersonMatchesPropertyPredicate(listingToMatch));
         model.updateSortedFilteredPersonList(new PersonListingScoreComparator(listingToMatch));
     }

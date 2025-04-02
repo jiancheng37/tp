@@ -27,6 +27,8 @@ public class AddPreferenceTagCommandParser implements Parser<AddPreferenceTagCom
      */
     public AddPreferenceTagCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_TAG, PREFIX_NEW_TAG);
+        argMultimap.verifyNoDuplicateTagValues(AddPreferenceTagCommand.MESSAGE_USAGE);
+
         Index personIndex;
         Index preferenceIndex;
 

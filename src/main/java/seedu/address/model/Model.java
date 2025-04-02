@@ -2,7 +2,6 @@ package seedu.address.model;
 
 import java.nio.file.Path;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -13,6 +12,8 @@ import seedu.address.model.listing.Listing;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.price.PriceRange;
+import seedu.address.model.search.SearchContext;
+import seedu.address.model.search.SearchType;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -35,13 +36,19 @@ public interface Model {
 
 
     /**
+     * Returns the current search context.
+     */
+    SearchContext getSearchContext();
+
+    /**
      *  Sets the search parameters
      *
      *  @param tags the tags to search for
      *  @param priceRange the price range to search for
      *  @param searchType the type of search to perform
      */
-    void setSearch(List<Tag> tags, PriceRange priceRange, SearchType searchType);
+    void setSearch(Set<Tag> tags, PriceRange priceRange, SearchType searchType,
+                   Predicate<PropertyPreference> propertyPreferencePredicate);
 
     /**
      * Replaces user prefs data with the data in {@code userPrefs}.

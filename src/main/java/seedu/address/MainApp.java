@@ -15,7 +15,6 @@ import seedu.address.commons.util.ConfigUtil;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -36,7 +35,7 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final Version VERSION = new Version(0, 2, 2, true);
+    public static final Version VERSION = new Version(1, 5, 0, true);
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
 
@@ -48,7 +47,7 @@ public class MainApp extends Application {
 
     @Override
     public void init() throws Exception {
-        logger.info("=============================[ Initializing AddressBook ]===========================");
+        logger.info("=============================[ Initializing MatchEstate ]===========================");
         super.init();
 
         AppParameters appParameters = AppParameters.parse(getParameters());
@@ -86,11 +85,35 @@ public class MainApp extends Application {
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty AddressBook.");
-            initialData = new AddressBook();
+                    + " Will be starting with a sample AddressBook.");
+
+            handleCorruptedFile(storage.getAddressBookFilePath());
+            initialData = SampleDataUtil.getSampleAddressBook();
         }
 
         return new ModelManager(initialData, userPrefs);
+    }
+
+    private void handleCorruptedFile(Path corruptedFilePath) {
+        // Rename the corrupted file with incrementing number if needed
+        Path directory = corruptedFilePath.getParent();
+        String baseName = "invalid_matchestate";
+        String extension = ".json";
+
+        Path newFilePath = directory.resolve(baseName + extension);
+        int counter = 1;
+
+        while (java.nio.file.Files.exists(newFilePath)) {
+            newFilePath = directory.resolve(baseName + "_" + counter + extension);
+            counter++;
+        }
+
+        try {
+            java.nio.file.Files.move(corruptedFilePath, newFilePath);
+            logger.warning("Renamed corrupted file to: " + newFilePath);
+        } catch (IOException ioException) {
+            logger.warning("Failed to rename corrupted file: " + StringUtil.getDetails(ioException));
+        }
     }
 
     private void initLogging(Config config) {
@@ -170,13 +193,13 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        logger.info("Starting AddressBook " + MainApp.VERSION);
+        logger.info("Starting MatchEstate " + MainApp.VERSION);
         ui.start(primaryStage);
     }
 
     @Override
     public void stop() {
-        logger.info("============================ [ Stopping AddressBook ] =============================");
+        logger.info("============================ [ Stopping MatchEstate ] =============================");
         try {
             storage.saveUserPrefs(model.getUserPrefs());
         } catch (IOException e) {

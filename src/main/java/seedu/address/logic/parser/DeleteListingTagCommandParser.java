@@ -16,6 +16,9 @@ import seedu.address.logic.parser.exceptions.ParseException;
  */
 public class DeleteListingTagCommandParser implements Parser<DeleteListingTagCommand> {
 
+    private static final String WHITESPACE_REGEX = "\\s+";
+    private static final int EXPECTED_PREAMBLE_PARTS = 1;
+
     /**
      * Parses the given {@code String} of arguments in the context of the DeleteListingTagCommand
      * and returns a DeleteListingTagCommand object for execution.
@@ -25,7 +28,7 @@ public class DeleteListingTagCommandParser implements Parser<DeleteListingTagCom
      */
     public DeleteListingTagCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_TAG);
-
+        argMultimap.verifyNoDuplicateTagValues(DeleteListingTagCommand.MESSAGE_USAGE);
         String preamble = argMultimap.getPreamble();
         checkCommandFormat(argMultimap, args);
         Index index = ParserUtil.parseIndex(preamble);
@@ -36,7 +39,7 @@ public class DeleteListingTagCommandParser implements Parser<DeleteListingTagCom
 
     private static void checkCommandFormat(ArgumentMultimap argMultimap, String args) throws ParseException {
         String preamble = argMultimap.getPreamble().trim();
-        boolean hasTags = !(argMultimap.getAllValues(PREFIX_TAG).isEmpty());
+        boolean hasTags = !argMultimap.getAllValues(PREFIX_TAG).isEmpty();
 
         if (args.trim().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_ARGUMENTS_EMPTY,
@@ -48,10 +51,9 @@ public class DeleteListingTagCommandParser implements Parser<DeleteListingTagCom
                     DeleteListingTagCommand.MESSAGE_USAGE));
         }
 
-        if (preamble.isEmpty() || preamble.split("\\s+").length != 1) {
+        if (preamble.isEmpty() || preamble.split(WHITESPACE_REGEX).length != EXPECTED_PREAMBLE_PARTS) {
             throw new ParseException(String.format(MESSAGE_ONE_INDEX_EXPECTED,
                     DeleteListingTagCommand.MESSAGE_USAGE));
-
         }
     }
 }

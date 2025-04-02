@@ -5,6 +5,7 @@ package seedu.address.logic.parser;
  * E.g. 't/' in 'add James t/ friend'.
  */
 public class Prefix {
+    private static final int HASH_CODE_NULL = 0;
     private final String prefix;
 
     public Prefix(String prefix) {
@@ -22,7 +23,7 @@ public class Prefix {
 
     @Override
     public int hashCode() {
-        return prefix == null ? 0 : prefix.hashCode();
+        return prefix == null ? HASH_CODE_NULL : prefix.hashCode();
     }
 
     @Override

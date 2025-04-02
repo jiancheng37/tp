@@ -3,6 +3,8 @@ package seedu.address.model.price;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.math.BigDecimal;
+
 /**
  * Represents a Price in the real estate system.
  * Guarantees: immutable; is valid as declared in {@link #isValidPrice(String)}
@@ -19,7 +21,7 @@ public class Price {
      */
     public static final String VALIDATION_REGEX = "^[0-9]+(?:\\.\\d{1,2})?$";
 
-    public final Float price;
+    public final BigDecimal price;
 
     /**
      * Constructs a {@code Price}.
@@ -29,7 +31,7 @@ public class Price {
     public Price(String price) {
         requireNonNull(price);
         checkArgument(isValidPrice(price), MESSAGE_CONSTRAINTS);
-        this.price = Float.parseFloat(price);
+        this.price = new BigDecimal(price);
     }
 
     /**
@@ -52,12 +54,12 @@ public class Price {
     public int compare(Price otherPrice) {
         requireNonNull(otherPrice);
 
-        return Float.compare(this.price, otherPrice.price);
+        return this.price.compareTo(otherPrice.price);
     }
 
     @Override
     public String toString() {
-        return "$" + price;
+        return "$" + price.toPlainString();
     }
 
     @Override
@@ -77,7 +79,7 @@ public class Price {
 
     @Override
     public int hashCode() {
-        return Float.hashCode(price);
+        return this.price.hashCode();
     }
 
 }

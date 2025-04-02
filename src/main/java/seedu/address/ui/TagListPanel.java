@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.search.SearchContext;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -24,16 +25,16 @@ public class TagListPanel extends UiPart<Region> {
     /**
      * Creates a {@code TagListPanel} with the given {@code ObservableList}.
      */
-    public TagListPanel(ObservableList<Tag> tagList) {
+    public TagListPanel(ObservableList<Tag> tagList, SearchContext searchContext) {
         super(FXML);
-        tagList.addListener((ListChangeListener<Tag>) change -> updateTags(tagList));
-        updateTags(tagList); // Update the FlowPane with the tags
+        tagList.addListener((ListChangeListener<Tag>) change -> updateTags(tagList, searchContext));
+        updateTags(tagList, searchContext); // Update the FlowPane with the tags
     }
 
     /**
      * Updates the FlowPane with the given list of tags.
      */
-    private void updateTags(ObservableList<Tag> tagList) {
+    private void updateTags(ObservableList<Tag> tagList, SearchContext searchContext) {
         tags.getChildren().clear(); // Clear existing tags
         ObservableList<Tag> sortedTagList = tagList.sorted();
         for (Tag tag : sortedTagList) {

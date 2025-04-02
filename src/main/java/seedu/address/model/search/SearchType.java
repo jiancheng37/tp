@@ -1,4 +1,4 @@
-package seedu.address.model;
+package seedu.address.model.search;
 
 /**
  * Type of search to perform

@@ -199,6 +199,45 @@ The `Model` component,
 
 </box>
 
+<box type="info" seamless>
+
+`SearchContext` and `SearchType`
+* SearchContext represents the current active filters for Tags, PriceRange, and PropertyPreference.
+* SearchType enumeration represents the types (Person/ Listing) of searches that can be performed.
+
+<puml src="diagrams/BetterTagAttributesClassDiagram.puml" width="450" />
+
+</box>
+
+<box type="info" seamless>
+
+**Bidirectional navigability:**
+
+`Listing` and `Person`:
+- Listings require references to their owners to display on the UI.
+- Listings uses reference to the owners to ensure that when matching, owners of a listing are not matched to them.
+- Person uses reference to the listings to ensure that they should have a `seller` display label. Alternatively a counter could also be used, however a direct reference would better ensure correctness.
+- Person uses references to the listings to ensure cascading deletion of a person also removes the person as a owner from their listings. Searching through all listings to maintain the cascading delete would be inefficient.
+
+`Person` and `PropertyPreference`:
+- Person requires references to their preferences to display on the UI.
+- Preferences requires references to their owner, such that when a tag is removed from the preference (by cascading deletion of a tag). The person the preference belongs to can update the display on the UI.
+- Preferences uses references to their owner to ensure cascading deletion of a preference also removes the preference from their owner without needing to search all persons which is especially inefficient since a preference can only have 1 owner.
+
+`Listing` and `Tags`:
+- Listing requires references to tags to display on the UI.
+- Tags uses references to the listing to ensure that they have an accurate instance usage label. Alternatively a counter could also be used, however a direct reference would better ensure correctness.
+- Tags uses references to their listing to ensure cascading deletion of a tag also removes the tag from the listings that uses it. Searching through all listings, would be inefficient.
+
+`PropertyPreference` and `Tags`:
+- Property preferences requires references to tags to display on the UI.
+- Tags uses references to the property preferences to ensure that they have an accurate instance usage label. Alternatively a counter could also be used, however a direct reference would better ensure correctness.
+- Tags uses references to their property preferences to ensure cascading deletion of a tag also removes the tag from the property preferences that uses it. Searching through all preferences, would be inefficient.
+
+<puml src="diagrams/BetterTagAttributesClassDiagram.puml" width="450" />
+
+</box>
+
 
 ### Storage component
 
@@ -207,9 +246,20 @@ The `Model` component,
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* inherits from both `AddressBookStorage` and `UserPrefStorage`, which means it can be treated as either one (if only the functionality of only one is needed).
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* stores match estate data and user preferences locally on disk in JSON format, and reads them back into the model when needed.
+* is defined by the `Storage` interface, which inherits from both `AddressBookStorage` and `UserPrefsStorage`.
+  This allows it to be used for storing either address book data or user preferences independently.
+* is implemented by `StorageManager`, which delegates to:
+  * `JsonAddressBookStorage` — handles storage and retrieval of address book data.
+  * `JsonUserPrefsStorage` — handles storage and retrieval of user preferences.
+* uses `JsonSerializableAddressBook` as the top-level serializable container to read/write the full address book.
+* relies on Jackson-compatible intermediary classes (e.g. `JsonAdaptedPerson`, `JsonAdaptedListing`, `JsonAdaptedTag`,
+  `JsonAdaptedPreference`, and `JsonAdaptedPriceRange`) to convert between JSON and model types.
+* depends on model classes such as `ReadOnlyAddressBook` and `UserPrefs`, as it handles the persistence of these entities.
+
+**Note:**  
+In `JsonAdaptedListing`, the `ownerKeys` field contains phone numbers as strings.  
+These are used to look up the corresponding `Person` objects during deserialization — forming an indirect association from `Listing` to `Person`.
 
 ### Common classes
 
@@ -452,37 +502,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 (For all use cases below, the **System** is the `MatchEstate` and the **Actor** is the `user`, unless specified otherwise)
 
-#### Use case: UC01 - Add a person
+#### Use case: UC01 - List persons
 
 **MSS**
 
-1.  User requests to <u>list persons (UC02)</u>
-2.  User specifies a person to add
-3.  MatchEstate adds the person
-4.  MatchEstate displays a success message.
-
-    Use case ends.
-
-**Extensions**
-
-* 2a. The specified person is invalid.
-
-    * 2a1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 2b. The specified person already exists.
-
-    * 2b1. MatchEstate shows an error message.
-
-      Use case ends.
-
-#### Use case: UC02 - List persons
-
-**MSS**
-
-1.  User requests to list persons
-2.  MatchEstate shows a list of persons
+1.  User requests to list persons.
+2.  MatchEstate shows a list of persons.
 3.  MatchEstate displays a success message.
 
     Use case ends.
@@ -491,292 +516,113 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. The list is empty.
 
-    * 1a1. MatchEstate displays a message for an empty list.
+  * 1a1. MatchEstate displays a message for an empty list.
 
-      Use case resumes at 3.
+    Use case resumes at 3.
 
-#### Use case: UC03 - Delete a person by index
+#### Use case: UC02 - List listings
+
+Similar to <u>UC01</u> except for listings instead.
 
 **MSS**
 
-1.  User requests to <u>list persons (UC02)</u>
-2.  User requests to delete a specific person by index
-3.  MatchEstate deletes the person's property preferences
-4.  MatchEstate updates the usage number of tags used by the person's property preferences
-5.  MatchEstate deletes ownership of property for all of the person's properties
-6.  MatchEstate deletes the person
-7.  MatchEstate displays a success message.
+1.  User requests to list listings.
+2.  MatchEstate shows a list of listings.
+3.  MatchEstate displays a success message.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The index is invalid.
+* 1a. The list is empty.
 
-    * 2a1. MatchEstate shows an error message.
+  * 1a1. MatchEstate displays a message for an empty list.
 
-  Use case ends.
+    Use case resumes at 3.
 
-* 2a. Person has no property preferences.
+#### Use case: UC03 - List tag
 
-  Use case resumes at 5.
-
-* 3a. None of the person's property preferences have tags.
-
-  Use case resumes at 5.
-
-* 4a. Person has no properties.
-
-  Use case resumes at 6.
-
-#### Use case: UC04 - Add property to person
+Similar to <u>UC01</u> except for tags instead.
 
 **MSS**
 
-1.  User requests to <u>list persons (UC02)</u>
-2.  User requests to <u>list properties (UC11)</u>
-3.  User requests to assign property to a specific person by index
-4.  MatchEstate updates ownership of property for that person
-5.  MatchEstate displays a success message.
+1.  User requests to list tags.
+2.  MatchEstate shows a list of tags.
+3.  MatchEstate displays a success message.
 
     Use case ends.
 
 **Extensions**
 
-* 3a. The person index is invalid.
+* 1a. The list is empty.
 
-    * 3a1. MatchEstate shows an error message.
+  * 1a1. MatchEstate displays a message for an empty list.
 
-  Use case ends
+    Use case resumes at 3.
 
-* 3b. The property index is invalid.
-
-    * 3b1. MatchEstate shows an error message.
-
-  Use case ends.
-
-#### Use case: UC05 - Delete property from person
+#### Use case: UC04 - Add a person
 
 **MSS**
 
-1.  User requests to <u>list properties (UC11)</u>
-2.  User requests to unassign a property from a specific person by index
-3.  MatchEstate updates ownership of property for that person
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User specifies a person to add.
+3.  MatchEstate adds the person.
 4.  MatchEstate displays a success message.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The property index is invalid.
+* 2a. The specified person is invalid.
 
-    * 2a1. MatchEstate shows an error message.
-
-  Use case ends
-
-* 2b. The owner index is invalid.
-
-    * 2b1. MatchEstate shows an error message.
+  * 2a1. MatchEstate shows an error message.
 
   Use case ends.
 
-#### Use case: UC06 - Add property preference to person
+* 2b. The specified person already exists.
 
-**MSS**
-
-1.  User requests to <u>list persons (UC02)</u>
-2.  User requests to <u>list tags (UC16)</u>
-3.  User requests to add a property preference to a specific person by index
-4.  MatchEstate creates new tags
-5.  MatchEstate updates the usage number of the tags
-6.  MatchEstate adds a property preference to the person
-7.  MatchEstate displays a success message
+  * 2b1. MatchEstate shows an error message.
 
     Use case ends.
 
-**Extensions**
-
-* 3a. The person index is invalid.
-
-    * 3a1. MatchEstate shows an error message.
-
-  Use case ends
-
-* 3b. Necessary fields (price range or a tag) not specified.
-
-    * 3b1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3c. Tag to be made already exists.
-
-    * 3c1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3d. Tag specified does not  exist.
-
-    * 3d1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3e. No new tags to be created.
-
-  Use case resumes at 5
-
-* 3f. No existing and new tags specified.
-
-  Use case resumes at 6
-
-#### Use case: UC07 - Add tag to property preference
+#### Use case: UC05 - Add a listing
 
 **MSS**
 
-1.  User requests to <u>list persons (UC02)</u>
-2.  User requests to <u>list tags (UC16)</u>
-3.  User requests to add a tag to a specific property preference by index
-4.  MatchEstate creates new tags
-5.  MatchEstate updates the usage number of the tags
-6.  MatchEstate updates the property preference
-7.  MatchEstate displays a success message.
-
-    Use case ends.
-
-**Extensions**
-
-* 3a. The person index is invalid.
-
-    * 3a1. MatchEstate shows an error message.
-
-  Use case ends
-
-* 3b. The property preference index is invalid.
-
-    * 3b1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3c. Tag to be made already exists.
-
-    * 3c1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3d. Tag specified does not exist.
-
-    * 3d1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3e. No new tags to be created.
-
-  Use case resumes at 5
-
-* 3f. No existing and new tags specified.
-
-  Use case resumes at 6
-
-#### Use case: UC08 - Delete tag from property preference
-
-**MSS**
-
-1.  User requests to <u>list persons (UC02)</u>
-2.  User requests to <u>list tags (UC16)</u>
-3.  User requests to delete a tag from a specific property preference by index
-4.  MatchEstate updates the usage number of the tags
-5.  MatchEstate updates the property preference
-6.  MatchEstate displays a success message.
-
-    Use case ends.
-
-**Extensions**
-
-* 3a. The person index is invalid.
-
-    * 3a1. MatchEstate shows an error message.
-
-  Use case ends
-
-* 3b. The property preference index is invalid.
-
-    * 3b1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3c. The tag does not exist.
-
-    * 3c1. MatchEstate shows an error message.
-
-  Use case ends.
-
-#### Use case: UC09 - Delete property preference
-
-**MSS**
-
-1.  User requests to <u>list persons(UC02)</u>
-2.  User requests to delete a property preference from a specific person by index
-3.  MatchEstate deletes the person's property preferences
-4.  MatchEstate updates the usage number of tags used by the person's property preferences
-5.  MatchEstate displays a success message
-
-    Use case ends.
-
-**Extensions**
-
-* 2a. The person index is invalid.
-
-    * 2a1. MatchEstate shows an error message.
-
-  Use case ends
-
-* 2b. The preference index is invalid.
-
-    * 2b1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3a. None of the person's property preferences have tags.
-
-  Use case resumes at 5.
-
-#### Use case: UC010 - Add a property
-
-**MSS**
-
-1.  User requests to <u>list property (UC11)</u>
-2.  User requests to <u>list tags (UC16)</u>
-3.  User specifies a property to add
-4.  MatchEstate adds the property
-5.  MatchEstate creates new tags
-6.  MatchEstate updates the usage number of the tags
-7.  MatchEstate updates the property's tags
+1.  User requests to <u>list listings(UC02)</u>.
+2.  User requests to <u>list tags(UC03)</u>.
+3.  User specifies a listing and its associated existing tags and new tags to add.
+4.  MatchEstate adds the listing.
+5.  MatchEstate creates the new tags specified.
+6.  MatchEstate adds the tags to the listing.
+7.  MatchEstate updates the usage number of the tags.
 8.  MatchEstate displays a success message.
 
     Use case ends.
 
 **Extensions**
 
-* 3a. The specified property is invalid.
+* 3a. The specified listing is invalid.
 
-    * 3a1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3b. The specified property already exists.
-
-    * 3b1. MatchEstate shows an error message.
-
-      Use case ends.
-
-* 3c. Tag to be made already exists.
-
-    * 3c1. MatchEstate shows an error message.
+  * 3a1. MatchEstate shows an error message.
 
   Use case ends.
 
-* 3d. Tag specified does not exist.
+* 3b. The specified listing already exists.
 
-    * 3d1. MatchEstate shows an error message.
+  * 3b1. MatchEstate shows an error message.
+
+    Use case ends.
+
+* 3c. New tags to be created already exist.
+
+  * 3c1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3d. Existing tags specified do not exist.
+
+  * 3d1. MatchEstate shows an error message.
 
   Use case ends.
 
@@ -786,206 +632,833 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 4b. No existing and new tags specified.
 
-  Use case resumes at 8
+  Use case resumes at 8.
 
-#### Use case: UC11 - List property
+#### Use case: UC06 - Add a tag
+
+Similar to <u>UC04</u> except for tags instead.
 
 **MSS**
 
-1.  User requests to list property
-2.  MatchEstate shows a list of properties
-3.  MatchEstate displays a success message.
+1.  User requests to <u>list tags(UC03)</u>.
+2.  User specifies new tags to create.
+3.  MatchEstate creates new tags.
+4.  MatchEstate displays a success message.
 
     Use case ends.
 
 **Extensions**
 
-* 1a. The list is empty.
+* 2a. The specified tag is invalid.
 
-    * 1a1. MatchEstate displays a message for an empty list.
+  * 2a1. MatchEstate shows an error message.
 
-      Use case resumes at 3.
+  Use case ends.
 
-#### Use case: UC12 - Add tag to property
+* 2b. New tag to be created already exists.
+
+  * 2b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+#### Use case: UC07 - Add owner of listing
 
 **MSS**
 
-1.  User requests to <u>list property(UC11)</u>
-2.  User requests to <u>list tags (UC16)</u>
-3.  User requests to add a tag to property
-4.  MatchEstate creates new tags
-5.  MatchEstate updates the usage number of the tags
-6.  MatchEstate updates the property's tags
-7.  MatchEstate displays a success message.
-
-    Use case ends.
-
-**Extensions**
-
-* 3a. The property index is invalid.
-
-    * 3a1. MatchEstate shows an error message.
-
-  Use case ends
-
-* 3b. Tag to be made already exists.
-
-    * 3b1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3c. Tag specified does not exist.
-
-    * 3c1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3d. No new tags to be created.
-
-  Use case resumes at 5
-
-* 3e. No existing and new tags specified.
-
-    * 3e1. MatchEstate shows an error message.
-
-  Use case ends.
-
-#### Use case: UC13 - Delete tag from property
-
-**MSS**
-
-1.  User requests to <u>list property (UC11)</u>
-2.  User requests to <u>list tags (UC16)</u>
-3.  User requests to delete a tag from a specific property by index
-4.  MatchEstate updates the usage number of the tags
-5.  MatchEstate updates the property
-6.  MatchEstate displays a success message.
-
-    Use case ends.
-
-**Extensions**
-
-* 3a. The property index is invalid.
-
-    * 3a1. MatchEstate shows an error message.
-
-  Use case ends
-
-* 3b. The tag does not exist.
-
-    * 3b1. MatchEstate shows an error message.
-
-  Use case ends.
-
-#### Use case: UC14 - Delete property
-
-**MSS**
-
-1.  User requests to <u>list property (UC11)</u>
-2.  User requests to delete a property by index
-3.  MatchEstate deletes the property
-4.  MatchEstate updates the usage number of tags used by the property
-5.  MatchEstate updates the property list of all its owners
-6.  MatchEstate displays a success message
-
-    Use case ends.
-
-**Extensions**
-
-* 2a. The property index is invalid.
-
-    * 2a1. MatchEstate shows an error message.
-
-  Use case ends.
-
-* 3a. The property does not have tags.
-
-  Use case resumes at 5.
-
-* 3b. The property is not assigned to any person
-
-  Use case resumes at 6.
-
-#### Use case: UC15 - Add a tag
-
-**MSS**
-
-1.  User requests to <u>list tags (UC16)</u>
-2.  User specifies new tags to create
-3.  MatchEstate creates new tags
-4.  MatchEstate updates the usage number of new tags
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to <u>list listings(UC02)</u>.
+3.  User requests add a specified person to a specified listing.
+4.  MatchEstate adds the person to the listing.
 5.  MatchEstate displays a success message.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. Tag to be made already exists.
+* 3a. The person index is invalid.
 
-    * 2a1. MatchEstate shows an error message.
+  * 3a1. MatchEstate shows an error message.
 
   Use case ends.
 
+* 3b. The listing index is invalid.
 
-#### Use case: UC16 - List tag
+  * 3b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+#### Use case: UC08 - Add property preference to person
+
+Similar to <u>UC05</u> except listing persons and adding property preference to the specified person. Note that preferences can be duplicates, so there are no extensions for it already existing.
 
 **MSS**
 
-1.  User requests to list tag
-2.  MatchEstate shows a list of tags
-3.  MatchEstate displays a success message.
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to <u>list tags(UC03)</u>.
+3.  User specifies a property preference with its associated existing tags and new tags to add to a specified person.
+4.  MatchEstate adds a new property preference to the person.
+5.  MatchEstate creates new tags.
+6.  MatchEstate adds the tags to the property preference.
+7.  MatchEstate updates the usage number of the tags
+8.  MatchEstate displays a success message.
 
     Use case ends.
 
 **Extensions**
 
-* 1a. The list is empty.
+* 3a. The person index is invalid.
 
-    * 1a1. MatchEstate displays a message for an empty list.
+  * 3a1. MatchEstate shows an error message.
 
-      Use case resumes at 3.
+  Use case ends.
+
+* 3b. New tags to be created already exist.
+
+  * 3c1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3d. Existing tags specified do not  exist.
+
+  * 3d1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 4a. No new tags to be created.
+
+  Use case resumes at 6.
+
+* 4b. No existing and new tags specified.
+
+  Use case resumes at 8.
+
+#### Use case: UC09 - Add tag to property preference
+
+Similar to <u>UC08</u> but references an existing property preference instead. Note that it throws an error if no existing and new tags are specified.
+
+**MSS**
+
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to <u>list tags(UC03)</u>.
+3.  User requests to add new and existing tags to a property preference.
+4.  MatchEstate creates new tags.
+5.  MatchEstate adds the tags to the property preference.
+6.  MatchEstate updates the usage number of the tags.
+7.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The person index is invalid.
+
+  * 3a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3b. The property preference index is invalid.
+
+  * 3b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3c. New tags to be created already exist.
+
+  * 3c1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3d. Existing tags specified do not exist.
+
+  * 3d1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3e. No new tags to be created.
+
+  Use case resumes at 5.
+
+* 3f. No existing and new tags specified.
+
+  * 3f1. MatchEstate shows an error message.
+
+  Use case ends.
+
+#### Use case: UC10 - Add tag to listing
+
+Similar to <u>UC09</u> but references an existing listing instead.
+
+**MSS**
+
+1.  User requests to list listings(UC02).
+2.  User requests to list tags(UC03).
+3.  User requests to add a tag to a listing.
+4.  MatchEstate creates new tags.
+5.  MatchEstate adds the tags to the listing.
+6.  MatchEstate updates the usage number of the tags.
+7.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The listing index is invalid.
+
+  * 3a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3b. New tags to be created already exist.
+
+  * 3b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3c. Existing tags specified do not exist.
+
+  * 3c1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3d. No new tags to be created.
+
+  Use case resumes at 5.
+
+* 3e. No existing and new tags specified.
+
+  * 3e1. MatchEstate shows an error message.
+
+  Use case ends.
+
+#### Use case: UC11 - Delete tag from property preference
+
+Similar to <u>UC09</u> but does not create new tags and removes the tags instead.
+
+**MSS**
+
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to <u>list tags(UC03)</u>.
+3.  User requests to delete tags from a property preference.
+4.  MatchEstate removes the tags from the property preferences.
+5.  MatchEstate updates the usage number of the tags.
+6.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The person index is invalid.
+
+  * 3a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3b. The property preference index is invalid.
+
+  * 3b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3c. Tags specified do not exist.
+
+  * 3c1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3d. No tag specified.
+
+  * 3d1. MatchEstate shows an error message.
+
+  Use case ends.
+
+#### Use case: UC12 - Delete tag from listing
+
+Similar to <u>UC010</u> but does not create new tags and removes the tags instead.
+
+**MSS**
+
+1.  User requests to <u>list listings(UC02)</u>.
+2.  User requests to <u>list tags(UC03)</u>.
+3.  User requests to delete tags from a property.
+4.  MatchEstate removes the tags from the listing.
+5.  MatchEstate updates the usage number of the tags
+6.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The listing index is invalid.
+
+  * 3a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3b. Tags specified do not exist.
+
+  * 3b1. MatchEstate shows an error message.
+
+  Use case ends
+
+* 3c. The tag is not present in the property.
+
+  * 3c1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3d. No tags specified.
+
+  * 3d1. MatchEstate shows an error message.
+
+  Use case ends.
+
+#### Use case: UC13 - Delete owners of a listing
+
+Similar to <u>UC07</u> but removes instead of adds. Note that the owners are displayed with the listing, hence there is no need for <u>UC01</u>.
+
+**MSS**
+
+1.  User requests to <u>list listings(UC02)</u>.
+2.  User requests to remove a specified owner from a specified listing.
+3.  MatchEstate removes the owner from the listing.
+4.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The listing index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2b. The owner index is invalid.
+
+  * 2b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+#### Use case: UC14 - Delete property preference
+
+Similar to <u>UC08</u> but removes instead of adds. Note that tags are appropriately removed when deleting a property preference, hence there is no need for <u>UC03</u>.
+
+**MSS**
+
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to delete a property preference from a person.
+3.  MatchEstate updates the usage number of tags used by the person’s property preferences.
+4.  MatchEstate removes the property preference from the person.
+5.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The person index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2b. The preference index is invalid.
+
+  * 2b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2c. The property preferences do not have tags.
+
+  Use case resumes at 4.
+
+#### Use case: UC15 - Delete listing
+
+**MSS**
+
+1.  User requests to <u>list listing(UC02)</u>.
+2.  User requests to delete a listing.
+3.  MatchEstate updates the usage number of tags used by the listing.
+4.  MatchEstate updates the listing list of all its owners.
+5.  MatchEstate deletes the listing.
+6.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The listing index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2b. The listing does not have tags.
+
+  Use case resumes at 5.
+
+* 2c. The listing does not have tags and has no owner.
+
+  Use case resumes at 6.
+
+* 2b. The listing does not have tags and has no owner.
+
+  Use case resumes at 6.
+
+#### Use case: UC16 - Delete person
+
+**MSS**
+
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to delete a specific person by index.
+3.  MatchEstate updates the usage number of tags used by the person’s property preferences.
+4.  MatchEstate deletes the person’s property preferences.
+5.  MatchEstate deletes ownership of listing for all of the person’s listing.
+6.  MatchEstate deletes the person.
+7.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The person index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2b. The person has no property preferences.
+
+  Use case resumes at 5.
+
+* 2c. None of the person's property preferences have tags.
+
+  Use case resumes at 4.
+
+* 2d. The person has no property preferences and has no listings.
+
+  Use case resumes at 6.
+
+* 4a. The person has no listings.
+
+  Use case resumes at 6.
 
 #### Use case: UC17 - Delete tag
 
 **MSS**
 
-1.  User requests to <u>list tags (UC16)</u>
-2.  User requests to delete a tag
-3.  MatchEstate deletes the tag
-4.  MatchEstate updates the property preferences with that tag
-5.  MatchEstate updates the properties with that tag
-6.  MatchEstate displays a success message
+1.  User requests to <u>list tags(UC03)</u>.
+2.  User requests to delete a tag.
+3.  MatchEstate deletes the tag from its property preferences.
+4.  MatchEstate deletes the tag from its listings.
+5.  MatchEstate deletes the tag.
+6.  MatchEstate displays a success message.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. Tag specified does not exist.
+* 2a. The tag specified does not exist.
 
-    * 2a1. MatchEstate shows an error message.
+  * 2a1. MatchEstate shows an error message.
 
   Use case ends.
 
-#### Use case: UC18 - Viewing help
+* 2b. The tag has no property preferences using it.
+
+  Use case resumes at 4.
+
+* 2c. The tag has no property preferences and listings using it
+
+  Use case resumes at 5.
+
+* 3a. The tag has no listings using it
+
+  Use case resumes at 5.
+
+#### Use case: UC18 - Edit a person
 
 **MSS**
 
-1.  User requests to view list of commands
-2.  MatchEstate displays help window
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to edit a person.
+3.  MatchEstate edits the person.
+4.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The person index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2b. The expected edited person already exists.
+
+  * 2b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+#### Use case: UC19 - Mark a listing as unavailable
+
+**MSS**
+
+1.  User requests to <u>list listings(UC02)</u>.
+2.  User specifies a listing to mark as unavailable.
+3.  MatchEstate marks the listing as unavailable.
+4.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The listing index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+    Use case ends.
+
+#### Use case: UC20 - Mark a listing as available
+
+**MSS**
+
+1.  User requests to <u>list listings(UC02)</u>.
+2.  User specifies a listing to mark as available.
+3.  MatchEstate marks the listing as available.
+4.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The listing index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+    Use case ends.
+
+#### Use case: UC21 - Overwrite tags in property preference
+
+Similar to <u>UC09</u> and <u>UC011</u>. Note that overwrite is effectively a combination of adding and deleting.
+
+**MSS**
+
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to <u>list tags(UC03)</u>.
+3.  User requests to overwrite the tags of a property preference with new and existing tags.
+4.  MatchEstate creates new tags.
+5.  MatchEstate removes all tags from the property preference.
+6.  MatchEstate adds the tags specified to the property preference.
+7.  MatchEstate updates the usage number of the tags.
+8.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The person index is invalid.
+
+  * 3a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3b. The property preference index is invalid.
+
+  * 3b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3c. New tags to be created already exist.
+
+  * 3c1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3d. Existing tags specified do not exist.
+
+  * 3d1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3e. No new tags to be created.
+
+  Use case resumes at 5.
+
+* 3f. No new tags to be created, no existing tags.
+
+  * 3f1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3g. No new tags to be created and property preference has no tags.
+
+  Use case resumes at 6.
+
+* 4a. Property preference has no tags.
+
+  Use case resumes at 6.
+
+#### Use case: UC22 - Overwrite tags in listings
+
+Similar to <u>UC21</u> except for listings instead.
+
+**MSS**
+
+1.  User requests to <u>list listings(UC02)</u>.
+2.  User requests to <u>list tags(UC03)</u>.
+3.  User requests to overwrite the tags of a listing with new and existing tags.
+4.  MatchEstate creates new tags.
+5.  MatchEstate removes all tags from the listings.
+6. MatchEstate adds the tags specified to the listings.
+7.  MatchEstate updates the usage number of the tags
+8.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The listing index is invalid.
+
+  * 3a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3b. New tags to be created already exist.
+
+  * 3b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3c. Existing tags specified do not exist.
+
+  * 3c1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3d. No new tags to be created.
+
+  Use case resumes at 5.
+
+* 3e. No new tags to be created, no existing tags.
+
+  * 3e1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3f. No new tags to be created and listings have no tags.
+
+  Use case resumes at 6.
+
+* 4a. Property preference has no tags.
+
+  Use case resumes at 6.
+
+#### Use case: UC23 - Search person by name
+
+**MSS**
+
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User specifies a search criteria containing one or more keywords.
+3.  MatchEstate filters the list of persons, displaying only those that contain any of the specified keywords.
+4.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The specified keywords is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3a. No persons match the specified keywords.
+
+  * 3a1. MatchEstate displays a message indicating no results.
+
+  Use case ends.
+
+#### Use case: UC24 - Search listings by tags
+
+Similar to <u>UC23</u> except with a has all tags criteria.
+
+**MSS**
+
+1.  User requests to <u>list listings(UC02)</u>.
+2.  User specifies a search criteria containing one or more tags.
+3.  MatchEstate filters the list of listings, displaying only those that contain all specified tags.
+4.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The tag specified does not exist.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2b. No tags specified.
+
+  * 2b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3a. No listings match the specified tags.
+
+  * 3a1. MatchEstate displays a message indicating no results.
+
+  Use case ends.
+
+#### Use case: UC25 - Search for persons by property preference tags
+
+Similar to <u>UC24</u> except for property preferences.
+
+**MSS**
+
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User specifies a search criteria containing one or more tags.
+3.  MatchEstate filters the list of persons, displaying only those that contain all specified tags.
+4.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The specified tag does not exist.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2b. No tags specified.
+
+  * 2b1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 3a. No persons match the specified preference tags.
+
+  * 3a1. MatchEstate displays a message indicating no results.
+
+  Use case ends.
+
+#### Use case: UC26 - Search for owner in listings
+
+**MSS**
+
+1.  User requests to <u>list persons(UC01)</u>.
+2.  User requests to <u>list listings(UC02)</u>.
+3.  User specifies the person to search as the owner in the list of listings.
+4.  MatchEstate filters the listings, displaying on those with the specified person as an owner.
+5.  MatchEstate a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The person index is invalid.
+
+  * 3a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 4a. No listing has the specified owner.
+
+  * 4a1. MatchEstate displays a message indicating no results.
+
+  Use case ends.
+
+#### Use case: UC27 - Match for preference
+
+**MSS**
+
+1.  User requests to list <u>list persons(UC01)</u>.
+2.  User requests to <u>list listings (UC02)</u>.
+3.  User specifies a property preference in a person to find a matching listing.
+4.  MatchEstate filters the list of listings, displaying based on if any tags and price range of the available listing not owned by the person matches the property preference.
+5.  MatchEstate sorts the filtered listings by the highest number of matching criteria.
+6.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The person index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 2b. The property preference index is invalid.
+
+  * 2b1. MatchEstate shows an error message.
+
+* 4a. No listings match the specified property preference.
+
+  * 4a1. MatchEstate displays a message indicating no results.
+
+  Use case ends.
+
+#### Use case: UC28 - Match for listing
+
+Similar to <u>UC27</u> except for a listing.
+
+**MSS**
+
+1.  User requests to list <u>list persons(UC01)</u>.
+2.  User requests to list <u>list listings(UC02)</u>.
+3.  User specifies a listing to find a matching property preference across all persons.
+4.  MatchEstate filters the list of property preferences, displaying persons who do not own the listing, based on if any tags and price range of any of their preferences matches the listing.
+5.  MatchEstate sorts the filtered persons by the highest number of matching criteria in their preferences.
+6.  MatchEstate displays a success message.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The listing index is invalid.
+
+  * 2a1. MatchEstate shows an error message.
+
+  Use case ends.
+
+* 4a. No persons have a property preference that matches the specified listing.
+
+  * 4a1. MatchEstate displays a message indicating no results.
+
+  Use case ends.
+
+#### Use case: UC29 - Clear data
+
+**MSS**
+
+1.  User requests to clear all data in the system.
+2.  MatchEstate clears all tags, persons, preferences and listings.
 3.  MatchEstate displays a success message
 
     Use case ends.
 
-#### Use case: UC19 - Exit MatchEstate
+#### Use case: UC30 - Viewing help
 
 **MSS**
 
-1.  User requests to exit MatchEstate
-2.  MatchEstate closes
+1.  User requests to view a list of commands.
+2.  MatchEstate displays a help window.
+3.  MatchEstate displays a success message.
 
     Use case ends.
 
-*{More to be added}*
+#### Use case: UC31 - Exit MatchEstate
+
+**MSS**
+
+1.  User requests to exit MatchEstate.
+2.  MatchEstate closes.
+
+    Use case ends.
 
 ### Non-Functional Requirements
 

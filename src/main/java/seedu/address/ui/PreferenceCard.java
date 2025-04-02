@@ -8,6 +8,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import seedu.address.model.person.PropertyPreference;
+import seedu.address.model.search.SearchContext;
 
 /**
  * An UI component that displays information of a {@code Person}.
@@ -41,14 +42,14 @@ public class PreferenceCard extends UiPart<Region> {
     /**
      * Creates a {@code PersonCode} with the given {@code Person} and index to display.
      */
-    public PreferenceCard(PropertyPreference propertyPreference, int displayedIndex) {
+    public PreferenceCard(PropertyPreference propertyPreference, int displayedIndex, SearchContext searchContext) {
         super(FXML);
 
         this.propertyPreference = propertyPreference;
         id.setText(displayedIndex + ". ");
         priceRange.setText("  --------------  " + propertyPreference.getPriceRange().toString());
 
-        if (propertyPreference.getPriceRange().isPriceMatchedForPerson()) {
+        if (searchContext.isPriceInRangeForPerson(propertyPreference.getPriceRange())) {
             priceRange.getStyleClass().add("active");
         }
 
@@ -56,7 +57,7 @@ public class PreferenceCard extends UiPart<Region> {
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> {
                     Label label = new Label(tag.tagName);
-                    if (tag.isActiveForPerson()) {
+                    if (searchContext.isTagActiveForPerson(tag)) {
                         label.getStyleClass().add("active");
                     }
                     tags.getChildren().add(label);

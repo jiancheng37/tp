@@ -2,13 +2,11 @@ package seedu.address.model.person;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.price.PriceRange;
@@ -20,7 +18,6 @@ import seedu.address.model.tag.Tag;
  * Associations are mutable.
  */
 public class PropertyPreference {
-    private static Predicate<PropertyPreference> filterPredicate = PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES;
 
     // Data fields
     private final PriceRange priceRange;
@@ -52,7 +49,15 @@ public class PropertyPreference {
         return person;
     }
 
+    /**
+     * Sets the person associated with this property preference.
+     * Can be updated due to immutable updating of data fields creating a new person.
+     *
+     * @param person The person to associate with this property preference.
+     */
     public void setPerson(Person person) {
+        requireNonNull(person);
+
         this.person = person;
     }
 
@@ -64,29 +69,26 @@ public class PropertyPreference {
         return Collections.unmodifiableSet(tags);
     }
 
+    /**
+     * Adds a tag to the property preference.
+     *
+     * @param toAdd A valid tag.
+     */
     public void addTag(Tag toAdd) {
+        requireNonNull(toAdd);
+
         this.tags.add(toAdd);
     }
 
-    public void removeTag(Tag toDelete) {
-        this.tags.remove(toDelete);
-    }
-
-    public static Predicate<PropertyPreference> getFilterPredicate() {
-        return filterPredicate;
-    }
-
-    public static void setFilterPredicate(Predicate<PropertyPreference> predicate) {
-        requireNonNull(predicate);
-
-        PropertyPreference.filterPredicate = predicate;
-    }
-
     /**
-     * Checks if this @{code PropertyPreference} fits the filterPredicate criteria.
+     * Removes a tag from the property preference.
+     *
+     * @param toDelete A valid tag.
      */
-    public boolean isFiltered() {
-        return filterPredicate.test(this);
+    public void removeTag(Tag toDelete) {
+        requireNonNull(toDelete);
+
+        this.tags.remove(toDelete);
     }
 
     @Override

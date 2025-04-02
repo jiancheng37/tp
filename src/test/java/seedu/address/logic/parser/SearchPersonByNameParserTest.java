@@ -9,16 +9,16 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
-import seedu.address.logic.commands.FindPersonCommand;
+import seedu.address.logic.commands.SearchPersonByName;
 import seedu.address.logic.commands.exceptions.CommandException;
 
-public class FindPersonCommandParserTest {
+public class SearchPersonByNameParserTest {
 
-    private FindPersonCommandParser parser = new FindPersonCommandParser();
+    private SearchPersonByNameParser parser = new SearchPersonByNameParser();
 
     @Test
     public void parse_emptyArg_throwsParseException() {
-        String expectedMessage = String.format(Messages.MESSAGE_MISSING_KEYWORD, FindPersonCommand.MESSAGE_USAGE);
+        String expectedMessage = String.format(Messages.MESSAGE_MISSING_KEYWORD, SearchPersonByName.MESSAGE_USAGE);
         assertParseFailure(parser, "     ", expectedMessage);
     }
 
@@ -26,10 +26,10 @@ public class FindPersonCommandParserTest {
     public void parse_validArgs_returnsFindCommand() throws CommandException {
         // no leading and trailing whitespaces
         List<String> expectedKeywords = Arrays.asList("Alice", "Bob");
-        FindPersonCommand expectedFindPersonCommand = new FindPersonCommand(expectedKeywords);
-        assertParseSuccess(parser, "Alice Bob", expectedFindPersonCommand);
+        SearchPersonByName expectedSearchPersonByName = new SearchPersonByName(expectedKeywords);
+        assertParseSuccess(parser, "Alice Bob", expectedSearchPersonByName);
 
         // multiple whitespaces between keywords
-        assertParseSuccess(parser, " \n Alice \n \t Bob  \t", expectedFindPersonCommand);
+        assertParseSuccess(parser, " \n Alice \n \t Bob  \t", expectedSearchPersonByName);
     }
 }

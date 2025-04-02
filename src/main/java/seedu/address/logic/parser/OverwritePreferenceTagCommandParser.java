@@ -18,6 +18,11 @@ import seedu.address.logic.parser.exceptions.ParseException;
  */
 public class OverwritePreferenceTagCommandParser implements Parser<OverwritePreferenceTagCommand> {
 
+    private static final String WHITESPACE_REGEX = "\\s+";
+    private static final int EXPECTED_PREAMBLE_PARTS = 2;
+    private static final int PERSON_INDEX = 0;
+    private static final int PREFERENCE_INDEX = 1;
+
     /**
      * Parses the given {@code String} of arguments in the context of the OverwritePreferenceTagCommand
      * and returns an OverwritePreferenceTagCommand object for execution.
@@ -27,6 +32,7 @@ public class OverwritePreferenceTagCommandParser implements Parser<OverwritePref
      */
     public OverwritePreferenceTagCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_TAG, PREFIX_NEW_TAG);
+        argMultimap.verifyNoDuplicateTagValues(OverwritePreferenceTagCommand.MESSAGE_USAGE);
         Index personIndex;
         Index preferenceIndex;
 
@@ -34,8 +40,8 @@ public class OverwritePreferenceTagCommandParser implements Parser<OverwritePref
 
         List<Index> multipleIndices = ParserUtil.parseMultipleIndices(argMultimap.getPreamble());
 
-        personIndex = multipleIndices.get(0);
-        preferenceIndex = multipleIndices.get(1);
+        personIndex = multipleIndices.get(PERSON_INDEX);
+        preferenceIndex = multipleIndices.get(PREFERENCE_INDEX);
 
         Set<String> tagSet = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
         Set<String> newTagSet = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_NEW_TAG));
@@ -45,8 +51,8 @@ public class OverwritePreferenceTagCommandParser implements Parser<OverwritePref
 
     private static void checkCommandFormat(ArgumentMultimap argMultimap, String args) throws ParseException {
         String preamble = argMultimap.getPreamble().trim();
-        boolean hasTags = !(argMultimap.getAllValues(PREFIX_TAG).isEmpty());
-        boolean hasNewTags = !(argMultimap.getAllValues(PREFIX_NEW_TAG).isEmpty());
+        boolean hasTags = !argMultimap.getAllValues(PREFIX_TAG).isEmpty();
+        boolean hasNewTags = !argMultimap.getAllValues(PREFIX_NEW_TAG).isEmpty();
         boolean hasCombinedTags = hasTags || hasNewTags;
 
         if (args.trim().isEmpty()) {
@@ -59,7 +65,7 @@ public class OverwritePreferenceTagCommandParser implements Parser<OverwritePref
                     OverwritePreferenceTagCommand.MESSAGE_USAGE));
         }
 
-        if (preamble.isEmpty() || preamble.split("\\s+").length != 2) {
+        if (preamble.isEmpty() || preamble.split(WHITESPACE_REGEX).length != EXPECTED_PREAMBLE_PARTS) {
             throw new ParseException(String.format(MESSAGE_EXPECTED_TWO_INDICES,
                     OverwritePreferenceTagCommand.MESSAGE_USAGE));
         }

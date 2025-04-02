@@ -6,10 +6,10 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NEW_TAG;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.commons.util.CommandUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -32,7 +32,7 @@ public class AddPreferenceTagCommand extends Command {
             + "Parameters: PERSON_INDEX (must be a positive integer) PREFERENCE_INDEX (must be a positive integer) "
             + "[" + PREFIX_TAG + "TAG]... "
             + "[" + PREFIX_NEW_TAG + "NEW_TAG]...\n"
-            + "Example: " + COMMAND_WORD + " 2 "
+            + "Example: " + COMMAND_WORD + " 2 1 "
             + PREFIX_TAG + "quiet "
             + PREFIX_TAG + "pet-friendly "
             + PREFIX_NEW_TAG + "family-friendly "
@@ -70,36 +70,32 @@ public class AddPreferenceTagCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getSortedFilteredPersonList();
 
-        if (targetPersonIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(String.format(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, MESSAGE_USAGE));
-        }
+        // Get and validate person
+        Person targetPerson = CommandUtil.getValidatedPerson(model, targetPersonIndex, MESSAGE_USAGE);
 
-        Person targetPerson = lastShownList.get(targetPersonIndex.getZeroBased());
+        // Get and validate preference
+        PropertyPreference targetPreference = CommandUtil.getValidatedPreference(model, targetPerson,
+                targetPreferenceIndex, MESSAGE_USAGE, true);
 
-        // Filter preferences according to active filter tags
-        List<PropertyPreference> targetPreferenceList = targetPerson.getPropertyPreferences().stream()
-                .filter(PropertyPreference::isFiltered)
-                .toList();
+        // Validate and process tags
+        CommandUtil.validateTags(model, tagSet, newTagSet, MESSAGE_USAGE,
+                MESSAGE_INVALID_TAGS, MESSAGE_DUPLICATE_TAGS);
+        Set<Tag> tags = processAndGetTags(model, targetPreference);
 
-        if (targetPreferenceIndex.getZeroBased() >= targetPreferenceList.size()) {
-            throw new CommandException(String.format(Messages.MESSAGE_INVALID_PREFERENCE_DISPLAYED_INDEX,
-                    MESSAGE_USAGE));
-        }
+        // Apply changes
+        applyTagsToPreference(model, targetPerson, targetPreference, tags);
 
-        PropertyPreference preference = targetPreferenceList.get(targetPreferenceIndex.getZeroBased());
+        return new CommandResult(String.format(MESSAGE_SUCCESS,
+                Messages.format(targetPerson, targetPreference), Messages.format(tags)));
+    }
 
-        if (!model.hasTags(tagSet)) {
-            throw new CommandException(String.format(MESSAGE_INVALID_TAGS, MESSAGE_USAGE));
-        }
-
-        if (model.hasNewTags(newTagSet)) {
-            throw new CommandException(String.format(MESSAGE_DUPLICATE_TAGS, MESSAGE_USAGE));
-        }
-
+    /**
+     * Processes tags and checks for duplicates in the preference.
+     * Returns the set of tags to be added.
+     */
+    private Set<Tag> processAndGetTags(Model model, PropertyPreference preference) throws CommandException {
         model.addTags(newTagSet);
-
         Set<String> tagNames = new HashSet<>(tagSet);
         Set<Tag> tags = new HashSet<>();
         tagNames.addAll(newTagSet);
@@ -111,18 +107,21 @@ public class AddPreferenceTagCommand extends Command {
             }
             tags.add(tag);
         }
+        return tags;
+    }
 
+    /**
+     * Applies the validated tags to the preference and updates the model.
+     */
+    private void applyTagsToPreference(Model model, Person targetPerson,
+        PropertyPreference preference, Set<Tag> tags) {
         for (Tag tag : tags) {
             tag.addPropertyPreference(preference);
             model.setTag(tag, tag);
             preference.addTag(tag);
         }
-
         model.setPerson(targetPerson, targetPerson);
         model.resetAllLists();
-
-        return new CommandResult(String.format(MESSAGE_SUCCESS,
-                Messages.format(targetPerson, preference), Messages.format(tags)));
     }
 
     @Override

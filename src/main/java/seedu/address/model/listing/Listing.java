@@ -1,5 +1,6 @@
 package seedu.address.model.listing;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.ArrayList;
@@ -125,6 +126,7 @@ public class Listing {
     public Listing(PostalCode postalCode, HouseNumber houseNumber, PriceRange priceRange,
                    PropertyName propertyName, Set<Tag> tags, List<Person> owners, boolean isAvailable) {
         requireAllNonNull(postalCode, houseNumber, priceRange, propertyName, tags, owners, isAvailable);
+
         this.postalCode = postalCode;
         this.unitNumber = null;
         this.houseNumber = houseNumber;
@@ -151,6 +153,8 @@ public class Listing {
     public static Listing of(PostalCode postalCode, UnitNumber unitNumber, HouseNumber houseNumber,
                              PriceRange priceRange, PropertyName propertyName, Set<Tag> tags, List<Person> owners,
                              boolean isAvailable) {
+
+        requireAllNonNull(postalCode, priceRange, tags, owners);
 
         if (unitNumber == null && propertyName == null) {
             return new Listing(postalCode, houseNumber, priceRange, tags, owners, isAvailable);
@@ -206,11 +210,23 @@ public class Listing {
         return Collections.unmodifiableSet(tags);
     }
 
+    /**
+     * Adds a tag to the listing.
+     *
+     * @param toAdd A valid tag.
+     */
     public void addTag(Tag toAdd) {
+        requireNonNull(toAdd);
         this.tags.add(toAdd);
     }
 
+    /**
+     * Removes a tag from the listing.
+     *
+     * @param toDelete A valid tag.
+     */
     public void removeTag(Tag toDelete) {
+        requireNonNull(toDelete);
         this.tags.remove(toDelete);
     }
 
@@ -222,11 +238,23 @@ public class Listing {
         return Collections.unmodifiableList(owners);
     }
 
+    /**
+     * Adds a person as the owner of the listing.
+     *
+     * @param toAdd A valid person.
+     */
     public void addOwner(Person toAdd) {
+        requireNonNull(toAdd);
         this.owners.add(toAdd);
     }
 
+    /**
+     * Removes a person from the owner of the listing.
+     *
+     * @param toDelete A valid person.
+     */
     public void removeOwner(Person toDelete) {
+        requireNonNull(toDelete);
         this.owners.remove(toDelete);
     }
 

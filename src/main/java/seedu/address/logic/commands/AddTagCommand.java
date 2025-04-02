@@ -46,7 +46,7 @@ public class AddTagCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        if (model.hasTags(toAdd)) {
+        if (model.hasNewTags(toAdd)) {
             throw new CommandException(String.format(MESSAGE_DUPLICATE_TAGS, MESSAGE_USAGE));
         }
 

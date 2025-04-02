@@ -3,7 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -12,16 +12,16 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.SearchType;
 import seedu.address.model.listing.Listing;
-import seedu.address.model.listing.predicates.ListingContainsAllTagsPredicate;
+import seedu.address.model.search.SearchType;
+import seedu.address.model.search.predicates.ListingContainsAllTagsPredicate;
 import seedu.address.model.tag.Tag;
 
 /**
  * Searches for {@code Listing}(s) whose tags contain all specified tags.
  */
 public class SearchListingByTagCommand extends Command {
-    public static final String COMMAND_WORD = "searchListing";
+    public static final String COMMAND_WORD = "searchListingTag";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all properties with all specified tags.\n"
             + "Parameters: " + PREFIX_TAG + "TAG [" + PREFIX_TAG + "TAG]...\n"
@@ -55,13 +55,17 @@ public class SearchListingByTagCommand extends Command {
             }
         }
 
-        List<Tag> activeTags = new ArrayList<>();
+        Set<Tag> activeTags = new HashSet<>();
         for (String tagName : tagsToSearch) {
             activeTags.add(model.getTag(tagName));
         }
 
         model.resetAllLists();
-        model.setSearch(activeTags, null, SearchType.LISTING);
+        model.setSearch(activeTags,
+                null,
+                SearchType.LISTING,
+                Model.PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
+
         ListingContainsAllTagsPredicate predicate = new ListingContainsAllTagsPredicate(tagsToSearch);
         model.updateFilteredListingList(predicate);
 

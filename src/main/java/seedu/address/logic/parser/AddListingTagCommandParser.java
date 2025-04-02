@@ -26,6 +26,7 @@ public class AddListingTagCommandParser implements Parser<AddListingTagCommand> 
     public AddListingTagCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_TAG, PREFIX_NEW_TAG);
+        argMultimap.verifyNoDuplicateTagValues(AddListingTagCommand.MESSAGE_USAGE);
         Index index;
 
         checkCommandFormat(argMultimap, args);

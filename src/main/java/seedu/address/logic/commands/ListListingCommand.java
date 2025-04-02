@@ -4,11 +4,11 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.COMPARATOR_SHOW_ALL_LISTINGS;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_LISTINGS;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import seedu.address.model.Model;
-import seedu.address.model.price.PriceRange;
-import seedu.address.model.tag.Tag;
+import seedu.address.model.search.SearchContext;
+import seedu.address.model.search.SearchType;
 
 /**
  * Lists all persons in the address book to the user.
@@ -27,11 +27,19 @@ public class ListListingCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
 
-        PriceRange.setFilteredAgainst(null);
-        Tag.setActiveSearchTags(new ArrayList<>());
+        SearchContext searchContext = model.getSearchContext();
 
+        // If current search was a listing search, set search back to none and clear all search tags and price range.
+        if (searchContext.getSearchType() == SearchType.LISTING) {
+            searchContext.setSearchType(SearchType.NONE);
+            searchContext.setActivePriceRange(null);
+            searchContext.setActiveSearchTags(new HashSet<>());
+        }
+
+        // Update the filtered listing list to show all listings and default sort.
         model.updateFilteredListingList(PREDICATE_SHOW_ALL_LISTINGS);
         model.updateSortedFilteredListingList(COMPARATOR_SHOW_ALL_LISTINGS);
+
         return new CommandResult(MESSAGE_SUCCESS);
     }
 

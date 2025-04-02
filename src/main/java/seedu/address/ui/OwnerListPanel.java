@@ -15,6 +15,8 @@ import seedu.address.model.person.Person;
  */
 public class OwnerListPanel extends UiPart<Region> {
     private static final String FXML = "OwnerListPanel.fxml";
+    private static final int INDEX_OFFSET = 1;
+
     private final Logger logger = LogsCenter.getLogger(OwnerListPanel.class);
 
     @FXML
@@ -41,7 +43,7 @@ public class OwnerListPanel extends UiPart<Region> {
                 setGraphic(null);
                 setText(null);
             } else {
-                setGraphic(new OwnerCard(person, getIndex() + 1).getRoot());
+                setGraphic(new OwnerCard(person, getIndex() + INDEX_OFFSET).getRoot());
             }
         }
     }

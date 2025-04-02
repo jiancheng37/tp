@@ -6,10 +6,10 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NEW_TAG;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.commons.util.CommandUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -69,62 +69,54 @@ public class OverwritePreferenceTagCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getSortedFilteredPersonList();
+        Person targetPerson = CommandUtil.getValidatedPerson(model, targetPersonIndex, MESSAGE_USAGE);
+        PropertyPreference targetPreference = CommandUtil.getValidatedPreference(model, targetPerson,
+                targetPreferenceIndex, MESSAGE_USAGE, false);
+        CommandUtil.validateTags(model, tagSet, newTagSet, MESSAGE_USAGE,
+                MESSAGE_INVALID_TAGS, MESSAGE_DUPLICATE_TAGS);
+        updatePreferenceTags(model, targetPreference, targetPerson);
+        return generateCommandResult(targetPreference);
+    }
 
-        if (targetPersonIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(String.format(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, MESSAGE_USAGE));
-        }
-        Person targetPerson = lastShownList.get(targetPersonIndex.getZeroBased());
-
-        List<PropertyPreference> targetPreferenceList = targetPerson.getPropertyPreferences();
-        if (targetPreferenceIndex.getZeroBased() >= targetPreferenceList.size()) {
-            throw new CommandException(String.format(Messages.MESSAGE_INVALID_PREFERENCE_DISPLAYED_INDEX,
-                    MESSAGE_USAGE));
-        }
-
-        PropertyPreference preference = targetPreferenceList.get(targetPreferenceIndex.getZeroBased());
-
-        if (!model.hasTags(tagSet)) {
-            throw new CommandException(String.format(MESSAGE_INVALID_TAGS, MESSAGE_USAGE));
-        }
-
-        if (model.hasNewTags(newTagSet)) {
-            throw new CommandException(String.format(MESSAGE_DUPLICATE_TAGS, MESSAGE_USAGE));
-        }
-
-        // Create new tags
+    /**
+     * Updates the preference's tags with the new set of tags.
+     */
+    private void updatePreferenceTags(Model model, PropertyPreference preference, Person targetPerson) {
         model.addTags(newTagSet);
-
-        Set<String> tagNames = new HashSet<>(tagSet);
+        Set<Tag> oldTags = new HashSet<>(preference.getTags());
         Set<Tag> newTags = new HashSet<>();
-        tagNames.addAll(newTagSet);
-
-        // Prepare new tags to be added
-        for (String tagName : tagNames) {
-            Tag tag = model.getTag(tagName);
-            newTags.add(tag);
-        }
 
         // Remove all existing tags
-        Set<Tag> existingTags = new HashSet<>(preference.getTags());
-        for (Tag tag : existingTags) {
+        for (Tag tag : oldTags) {
             tag.removePropertyPreference(preference);
             model.setTag(tag, tag);
             preference.removeTag(tag);
         }
 
         // Add new tags
-        for (Tag tag : newTags) {
+        for (String tagName : tagSet) {
+            Tag tag = model.getTag(tagName);
             tag.addPropertyPreference(preference);
             model.setTag(tag, tag);
             preference.addTag(tag);
+            newTags.add(tag);
+        }
+
+        for (String tagName : newTagSet) {
+            Tag tag = model.getTag(tagName);
+            tag.addPropertyPreference(preference);
+            model.setTag(tag, tag);
+            preference.addTag(tag);
+            newTags.add(tag);
         }
 
         model.setPerson(targetPerson, targetPerson);
-
         model.resetAllLists();
+    }
 
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.formatTagsOnly(newTags)));
+    private CommandResult generateCommandResult(PropertyPreference preference) {
+        return new CommandResult(String.format(MESSAGE_SUCCESS,
+                Messages.formatTagsOnly(preference.getTags())));
     }
 
     @Override

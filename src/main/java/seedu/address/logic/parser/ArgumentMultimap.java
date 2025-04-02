@@ -18,6 +18,11 @@ import seedu.address.logic.parser.exceptions.ParseException;
  * can be inserted multiple times for the same prefix.
  */
 public class ArgumentMultimap {
+    private static final String EMPTY_PREFIX = "";
+    private static final String NEW_TAG_PREFIX = "nt/";
+    private static final String TAG_PREFIX = "t/";
+    private static final int SINGLE_VALUE = 1;
+    private static final int FIRST_OCCURRENCE = 1;
 
     /** Prefixes mapped to their respective arguments**/
     private final Map<Prefix, List<String>> argMultimap = new HashMap<>();
@@ -59,7 +64,7 @@ public class ArgumentMultimap {
      * Returns the preamble (text before the first valid prefix). Trims any leading/trailing spaces.
      */
     public String getPreamble() {
-        return getValue(new Prefix("")).orElse("");
+        return getValue(new Prefix(EMPTY_PREFIX)).orElse(EMPTY_PREFIX);
     }
 
     /**
@@ -68,11 +73,37 @@ public class ArgumentMultimap {
      */
     public void verifyNoDuplicatePrefixesFor(Prefix... prefixes) throws ParseException {
         Prefix[] duplicatedPrefixes = Stream.of(prefixes).distinct()
-                .filter(prefix -> argMultimap.containsKey(prefix) && argMultimap.get(prefix).size() > 1)
+                .filter(prefix -> argMultimap.containsKey(prefix) && argMultimap.get(prefix).size() > SINGLE_VALUE)
                 .toArray(Prefix[]::new);
 
         if (duplicatedPrefixes.length > 0) {
             throw new ParseException(Messages.getErrorMessageForDuplicatePrefixes(duplicatedPrefixes));
+        }
+    }
+
+    /**
+     * Throws a {@code ParseException} if any values of new tag or tag prefix given in {@code prefixes}
+     * appears more than once.
+     */
+    public void verifyNoDuplicateTagValues(String messageUsage) throws ParseException {
+        Prefix newTagPrefix = new Prefix(NEW_TAG_PREFIX);
+        Prefix tagPrefix = new Prefix(TAG_PREFIX);
+        List<String> newTagValues = getAllValues(newTagPrefix);
+        List<String> tagValues = getAllValues(tagPrefix);
+
+        List<String> allTagValues = new ArrayList<>();
+        allTagValues.addAll(newTagValues);
+        allTagValues.addAll(tagValues);
+        Map<String, Integer> valueCounts = new HashMap<>();
+
+        for (String value : allTagValues) {
+            String tagName = value.trim().toUpperCase();
+            valueCounts.put(tagName, valueCounts.getOrDefault(tagName, 0) + FIRST_OCCURRENCE);
+
+            if (valueCounts.get(tagName) > SINGLE_VALUE) {
+                throw new ParseException(String.format(Messages.MESSAGE_DUPLICATE_VALUES_FOR_TAGS, tagName,
+                        messageUsage));
+            }
         }
     }
 }
