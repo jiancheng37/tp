@@ -107,7 +107,7 @@ public class DeletePreferenceTagCommandTest {
                 Set.of("NonExistentTag")
         );
 
-        assertCommandFailure(command, model, String.format(Messages.MESSAGE_TAG_DOES_NOT_EXIST,
+        assertCommandFailure(command, model, String.format(Messages.MESSAGE_TAG_NOT_FOUND_IN_PREFERENCE,
                 "NonExistentTag", DeletePreferenceTagCommand.MESSAGE_USAGE));
     }
 

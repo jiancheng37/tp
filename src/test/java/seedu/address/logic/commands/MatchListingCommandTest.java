@@ -20,7 +20,6 @@ import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.SearchType;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.listing.HouseNumber;
 import seedu.address.model.listing.Listing;
@@ -33,6 +32,7 @@ import seedu.address.model.person.Phone;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.price.Price;
 import seedu.address.model.price.PriceRange;
+import seedu.address.model.search.SearchType;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -102,9 +102,10 @@ public class MatchListingCommandTest {
 
         // Set up expected model state
         expectedModel.resetAllLists();
-        expectedModel.setSearch(sampleListing.getTags().stream().toList(),
+        expectedModel.setSearch(new HashSet<>(sampleListing.getTags()),
                 sampleListing.getPriceRange(),
-                SearchType.PERSON);
+                SearchType.PERSON,
+                Model.PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
 
         String expectedMessage = String.format(MESSAGE_MATCH_LISTING_SUCCESS,
                 Messages.format(sampleListing));
@@ -145,9 +146,10 @@ public class MatchListingCommandTest {
 
         // Set up expected model state
         expectedModel.resetAllLists();
-        expectedModel.setSearch(sampleListing.getTags().stream().toList(),
+        expectedModel.setSearch(new HashSet<>(sampleListing.getTags()),
                 sampleListing.getPriceRange(),
-                SearchType.PERSON);
+                SearchType.PERSON,
+                Model.PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
 
         String expectedMessage = String.format(MESSAGE_MATCH_LISTING_SUCCESS,
                 Messages.format(sampleListing));
@@ -185,4 +187,3 @@ public class MatchListingCommandTest {
         assertEquals(expected, matchListingCommand.toString());
     }
 }
-

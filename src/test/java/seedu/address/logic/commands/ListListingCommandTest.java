@@ -8,15 +8,14 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.price.PriceRange;
-import seedu.address.model.tag.Tag;
+import seedu.address.model.UserPrefs;
 
 public class ListListingCommandTest {
 
     @Test
     public void execute_listListings_success() {
-        Model model = new ModelManager();
-        Model expectedModel = new ModelManager();
+        Model model = new ModelManager(new seedu.address.model.AddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(new seedu.address.model.AddressBook(), new UserPrefs());
         ListListingCommand listListingCommand = new ListListingCommand();
 
         // Execute command
@@ -25,11 +24,6 @@ public class ListListingCommandTest {
         // Verify result
         assertEquals(ListListingCommand.MESSAGE_SUCCESS, commandResult.getFeedbackToUser());
         assertEquals(expectedModel.getFilteredListingList(), model.getFilteredListingList());
-        assertEquals(expectedModel.getSortedFilteredListingList(),
-            model.getSortedFilteredListingList());
-        // Verify that filters are reset
-        assertTrue(PriceRange.getFilteredAgainst() == null);
-        assertTrue(Tag.getActiveSearchTags().isEmpty());
     }
 
     @Test

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.address.logic.commands.MatchPersonCommand.MESSAGE_MATCH_PERSON_SUCCESS;
+import static seedu.address.logic.commands.MatchPreferenceCommand.MESSAGE_MATCH_PERSON_SUCCESS;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,7 +20,6 @@ import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.SearchType;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.listing.HouseNumber;
 import seedu.address.model.listing.Listing;
@@ -33,13 +32,14 @@ import seedu.address.model.person.Phone;
 import seedu.address.model.person.PropertyPreference;
 import seedu.address.model.price.Price;
 import seedu.address.model.price.PriceRange;
+import seedu.address.model.search.SearchType;
 import seedu.address.model.tag.Tag;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for
- * {@code MatchPersonCommand}.
+ * {@code MatchPreferenceCommand}.
  */
-public class MatchPersonCommandTest {
+public class MatchPreferenceCommandTest {
     private Model model;
     private Model expectedModel;
     private Person samplePerson;
@@ -98,13 +98,14 @@ public class MatchPersonCommandTest {
         samplePerson.addPropertyPreference(samplePreference);
         model.setPerson(samplePerson, samplePerson);
 
-        MatchPersonCommand command = new MatchPersonCommand(Index.fromOneBased(1), Index.fromOneBased(1));
+        MatchPreferenceCommand command = new MatchPreferenceCommand(Index.fromOneBased(1), Index.fromOneBased(1));
 
         // Set up expected model state
         expectedModel.resetAllLists();
-        expectedModel.setSearch(samplePreference.getTags().stream().toList(),
+        expectedModel.setSearch(new HashSet<>(samplePreference.getTags()),
                 samplePreference.getPriceRange(),
-                SearchType.LISTING);
+                SearchType.LISTING,
+                Model.PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
 
         String expectedMessage = String.format(MESSAGE_MATCH_PERSON_SUCCESS,
                 samplePerson.getName(),
@@ -116,10 +117,10 @@ public class MatchPersonCommandTest {
 
     @Test
     public void execute_invalidPersonIndex_throwsCommandException() {
-        MatchPersonCommand command = new MatchPersonCommand(Index.fromOneBased(2), Index.fromOneBased(1));
+        MatchPreferenceCommand command = new MatchPreferenceCommand(Index.fromOneBased(2), Index.fromOneBased(1));
 
         assertCommandFailure(command, model, String.format(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX,
-                MatchPersonCommand.MESSAGE_USAGE));
+                MatchPreferenceCommand.MESSAGE_USAGE));
     }
 
     @Test
@@ -128,10 +129,10 @@ public class MatchPersonCommandTest {
         samplePerson.addPropertyPreference(samplePreference);
         model.setPerson(samplePerson, samplePerson);
 
-        MatchPersonCommand command = new MatchPersonCommand(Index.fromOneBased(1), Index.fromOneBased(2));
+        MatchPreferenceCommand command = new MatchPreferenceCommand(Index.fromOneBased(1), Index.fromOneBased(2));
 
         assertCommandFailure(command, model, String.format(Messages.MESSAGE_INVALID_PREFERENCE_DISPLAYED_INDEX,
-                MatchPersonCommand.MESSAGE_USAGE));
+                MatchPreferenceCommand.MESSAGE_USAGE));
     }
 
     @Test
@@ -155,13 +156,14 @@ public class MatchPersonCommandTest {
         samplePerson.addPropertyPreference(samplePreference);
         model.setPerson(samplePerson, samplePerson);
 
-        MatchPersonCommand command = new MatchPersonCommand(Index.fromOneBased(1), Index.fromOneBased(1));
+        MatchPreferenceCommand command = new MatchPreferenceCommand(Index.fromOneBased(1), Index.fromOneBased(1));
 
         // Set up expected model state
         expectedModel.resetAllLists();
-        expectedModel.setSearch(samplePreference.getTags().stream().toList(),
+        expectedModel.setSearch(new HashSet<>(samplePreference.getTags()),
                 samplePreference.getPriceRange(),
-                SearchType.LISTING);
+                SearchType.LISTING,
+                Model.PREDICATE_SHOW_ALL_PROPERTY_PREFERENCES);
 
         String expectedMessage = String.format(MESSAGE_MATCH_PERSON_SUCCESS,
                 samplePerson.getName(),
@@ -173,14 +175,15 @@ public class MatchPersonCommandTest {
 
     @Test
     public void equals() {
-        MatchPersonCommand matchPersonCommand = new MatchPersonCommand(Index.fromOneBased(1), Index.fromOneBased(1));
+        MatchPreferenceCommand matchPersonCommand =
+            new MatchPreferenceCommand(Index.fromOneBased(1), Index.fromOneBased(1));
 
         // same object -> returns true
         assertTrue(matchPersonCommand.equals(matchPersonCommand));
 
         // same values -> returns true
-        MatchPersonCommand matchPersonCommandCopy =
-            new MatchPersonCommand(Index.fromOneBased(1), Index.fromOneBased(1));
+        MatchPreferenceCommand matchPersonCommandCopy =
+            new MatchPreferenceCommand(Index.fromOneBased(1), Index.fromOneBased(1));
         assertTrue(matchPersonCommand.equals(matchPersonCommandCopy));
 
         // different types -> returns false
@@ -190,21 +193,21 @@ public class MatchPersonCommandTest {
         assertFalse(matchPersonCommand.equals(null));
 
         // different person index -> returns false
-        MatchPersonCommand differentPersonIndexCommand =
-            new MatchPersonCommand(Index.fromOneBased(2), Index.fromOneBased(1));
+        MatchPreferenceCommand differentPersonIndexCommand =
+            new MatchPreferenceCommand(Index.fromOneBased(2), Index.fromOneBased(1));
         assertFalse(matchPersonCommand.equals(differentPersonIndexCommand));
 
         // different preference index -> returns false
-        MatchPersonCommand differentPreferenceIndexCommand =
-            new MatchPersonCommand(Index.fromOneBased(1), Index.fromOneBased(2));
+        MatchPreferenceCommand differentPreferenceIndexCommand =
+            new MatchPreferenceCommand(Index.fromOneBased(1), Index.fromOneBased(2));
         assertFalse(matchPersonCommand.equals(differentPreferenceIndexCommand));
     }
 
     @Test
     public void toStringMethod() {
-        MatchPersonCommand matchPersonCommand =
-            new MatchPersonCommand(Index.fromOneBased(1), Index.fromOneBased(1));
-        String expected = MatchPersonCommand.class.getCanonicalName()
+        MatchPreferenceCommand matchPersonCommand =
+            new MatchPreferenceCommand(Index.fromOneBased(1), Index.fromOneBased(1));
+        String expected = MatchPreferenceCommand.class.getCanonicalName()
             + "{targetPersonIndex=" + Index.fromOneBased(1)
             + ", targetPreferenceIndex=" + Index.fromOneBased(1) + "}";
         assertEquals(expected, matchPersonCommand.toString());
